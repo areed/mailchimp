@@ -5,7 +5,7 @@ A golang wrapper for the Mailchimp API
 
 ## Usage
 Create an API struct with the API version, method, apikey, and a map with all the parameters for the method except apikey.
-Refer to the Mailchimp API Docs for the parameter options for each method.
+Refer to the [Mailchimp API Docs](http://apidocs.mailchimp.com/api/1.3/) for the parameter options for each method.
 If successful, API.Run() returns the response as a map.
 
 ### Example
