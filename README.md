@@ -12,7 +12,7 @@ If successful, API.Run() returns the response as a map.
 ``` go
 filters := make(map[string]interface{})
 filters["status"] = "sent"
-paramaters := make(map[string]interface{})
+parameters := make(map[string]interface{})
 parameters["filters"] = filters
 api := mailchimp.API{"1.3", "campaigns", "abc123-us1", parameters}
 resp, err := api.Run()
