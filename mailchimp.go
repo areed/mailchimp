@@ -11,7 +11,10 @@ import (
 //	"os"
 	"regexp"
 	"strconv"
+	"time"
 )
+
+const ChimpTime = "2006-01-02 15:04:05"
 
 var datacenter = regexp.MustCompile("[a-z]+[0-9]+$")
 
@@ -66,6 +69,24 @@ func verify(body []byte) error {
 	return nil
 }
 
+func chimpTime(t interface{}) interface{} {
+	switch ti := t.(type) {
+	case time.Time:
+		return ti.Format(ChimpTime)
+	case string:
+		return ti
+	}
+	return t;
+}
+
+func parseInt(body []byte) (int, error) {
+	if err := verify(body); err != nil {
+		return 0, err
+	}
+	i, err := strconv.ParseInt(string(body), 10, 0)
+	return int(i), err
+}
+
 func parseString(body []byte) (string, error) {
 	if err := verify(body); err != nil {
 		return "", err
@@ -111,7 +132,7 @@ func (a *api) CampaignCreate(parameters map[string]interface{}) (string, error) 
 }
 
 func (a *api) CampaignDelete(parameters map[string]interface{}) (bool, error) {
-	body, err := run (a, "campaignDelete", parameters)
+	body, err := run(a, "campaignDelete", parameters)
 	if err != nil {
 		return false, err
 	}
@@ -120,7 +141,7 @@ func (a *api) CampaignDelete(parameters map[string]interface{}) (bool, error) {
 
 //not tested
 func (a *api) CampaignEcommOrderAdd(parameters map[string]interface{}) (bool, error) {
-	body, err := run (a, "campaignEcommOrderAdd", parameters)
+	body, err := run(a, "campaignEcommOrderAdd", parameters)
 	if err != nil {
 		return false, err
 	}
@@ -128,7 +149,7 @@ func (a *api) CampaignEcommOrderAdd(parameters map[string]interface{}) (bool, er
 }
 
 func (a *api) CampaignPause(parameters map[string]interface{}) (bool, error) {
-	body, err := run (a, "campaignPause", parameters)
+	body, err := run(a, "campaignPause", parameters)
 	if err != nil {
 		return false, err
 	}
@@ -142,6 +163,99 @@ func (a *api) CampaignReplicate(parameters map[string]interface{}) (string, erro
 		return "", err
 	}
 	return parseString(resp)
+}
+
+func (a *api) CampaignResume(parameters map[string]interface{}) (bool, error) {
+	body, err := run(a, "campaignResume", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
+}
+
+func (a *api) CampaignSchedule(parameters map[string]interface{}) (bool, error) {
+	if parameters == nil {
+		parameters = make(map[string]interface{})
+	}
+	parameters["schedule_time"] = chimpTime(parameters["schedule_time"])
+	if t, exist := parameters["schedule_time_b"]; exist {
+		parameters["schedule_time_b"] = chimpTime(t)
+	}
+	body, err := run(a, "campaignSchedule", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
+}
+
+func (a *api) CampaignSegmentTest(parameters map[string]interface{}) (int, error) {
+	body, err := run(a, "campaignSegmentTest", parameters)
+	if err != nil {
+		return 0, err
+	}
+	return parseInt(body)
+}
+
+func (a *api) CampaignSendNow(parameters map[string]interface{}) (bool, error) {
+	body, err := run(a, "campaignSendNow", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
+}
+
+func (a *api) CampaignSendTest(parameters map[string]interface{}) (bool, error) {
+	body, err := run(a, "campaignSendTest", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
+}
+
+type CampaignShareReportResult struct {
+	Title string
+	Url string
+	Secure_url string
+	Password string
+}
+func (a *api) CampaignShareReport(parameters map[string]interface{}) (*CampaignShareReportResult, error) {
+	body, err := run(a, "campaignShareReport", parameters)
+	if err != nil {
+		return nil, err
+	}
+	var csrr CampaignShareReportResult
+	if err = parseStruct(body, &csrr); err != nil {
+		return nil, err
+	}
+	return &csrr, nil
+}
+
+func (a *api) CampaignTemplateContent(parameters map[string]interface{}) (map[string]interface{}, error) {
+	body, err := run(a, "campaignTemplateContent", parameters)
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string]interface{})
+	if err = json.Unmarshal(body, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (a *api) CampaignUnschedule(parameters map[string]interface{}) (bool, error) {
+	body, err := run(a, "campaignUnschedule", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
+}
+
+func (a *api) CampaignUpdate(parameters map[string]interface{}) (bool, error) {
+	body, err := run(a, "campaignUpdate", parameters)
+	if err != nil {
+		return false, err
+	}
+	return parseBoolean(body)
 }
 
 type CampaignsResult struct {
