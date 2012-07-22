@@ -13,15 +13,16 @@ chimp := mailchimp.New("abcdefg-us1", true)
 chimp.Ping()
 //"Everything's Chimpy"
 
-//refer to the Mailchimp API Docs for the required and optional
-//parameters for each routine and assemble them into a 
-//a map[string]interface{}, excluding apikey
+//refer to the Mailchimp API Docs for the required and optional parameters for each
+//routine and assemble them into a map[string]interface{}, excluding apikey
 filters := make(map[string]interface{})
 filters["status"] = "sent"
 parameters := make(map[string]interface{})
 parameters["filters"] = filters
+parameters["start"] = 0
+parameters["limit"] = 10
 
-//pass the map to the method
+//pass the parameter map to the method
 result, err := chimp.Campaigns(parameters)
 
 //Campaigns returns a struct with all constant return values correctly typed
