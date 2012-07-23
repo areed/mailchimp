@@ -120,10 +120,6 @@ func parseJson(a *API, method string, parameters map[string]interface{}, retVal 
 	return nil
 }
 
-func (a *API) Ping() (string, error) {
-	return parseString(run(a, "ping", nil))
-}
-
 type CampaignContentResult struct {
 	Html string
 	Text string
@@ -753,4 +749,127 @@ type GmonkeyMembersItem struct {
 func (a *API) GmonkeyMembers(parameters map[string]interface{}) (retVal []GmonkeyMembersItem, err error) {
 	err = parseJson(a, "gmonkeyMembers", parameters, &retVal)
 	return
+}
+
+func (a *API) CampaignsForEmail(parameters map[string]interface{}) (retVal []string, err error) {
+	err = parseJson(a, "campaignsForEmail", parameters, &retVal)
+	return
+}
+
+type ChimpChatterResultItem struct {
+	Message string
+	Type string
+	Url string
+	List_id string
+	Campaign_id string
+	Update_time string
+}
+func (a *API) ChimpChatter(parameters map[string]interface{}) (retVal []ChimpChatterResultItem, err error) {
+	err = parseJson(a, "chimpChatter", parameters, &retVal)
+	return
+}
+
+func (a *API) GenerateText(parameters map[string]interface{}) (string, error) {
+	return parseString(run(a, "generateText", parameters))
+}
+
+type GetAccountDetailsResult struct {
+	Username string
+	User_id string
+	Is_trial bool
+	Is_approved bool
+	Has_activated bool
+	Timezone string
+	Plan_type string
+	Plan_low int
+	Plan_high int
+	Plan_start_date string
+	Emails_left int
+	Pending_monthly bool
+	First_payment string
+	Last_payment string
+	Times_logged_in int
+	Last_login string
+	Affiliate_link string
+	Contact struct {
+		Fname string
+		Lname string
+		Email string
+		Company string
+		Address1 string
+		Address2 string
+		City string
+		State string
+		Zip string
+		Country string
+		Url string
+		Phone string
+		Fax string
+	}
+	Modules []struct {
+		Name string
+		Added string
+	}
+	Orders []struct {
+		Order_id int
+		Type string
+		Amount float64
+		Date string
+		Credits_used float64
+	}
+	Rewards struct {
+		Referrals_this_month int
+		Notify_on string
+		Notify_email string
+		Credits struct {
+			This_month int
+			Total_earned int
+			Remaining int
+		}
+		Inspections struct {
+			This_month int
+			Total_earned int
+			Remaining int
+		}
+		Referrals []struct {
+			Name string
+			Email string
+			Signup_date string
+			Type string
+		}
+		Applied []struct {
+			Value int
+			Date string
+			Order_id int
+			Order_desc string
+		}
+	}
+}
+func (a *API) GetAccountDetails(parameters map[string]interface{}) (retVal *GetAccountDetailsResult, err error) {
+	retVal = new(GetAccountDetailsResult)
+	err = parseJson(a, "getAccountDetails", parameters, retVal)
+	return
+}
+
+type GetVerifiedDomainsResultItem struct {
+	Domain string
+	Status string
+	Emails string
+}
+func (a *API) GetVerifiedDomains(parameters map[string]interface{}) (retVal []GetVerifiedDomainsResultItem, err error) {
+	err = parseJson(a, "getVerifiedDomains", parameters, &retVal)
+	return
+}
+
+func (a *API) InlineCss(parameters map[string]interface{}) (string, error) {
+	return parseString(run(a, "inlineCss", parameters))
+}
+
+func (a *API) ListsForEmail(parameters map[string]interface{}) (retVal []string, err error) {
+	err = parseJson(a, "listsForEmail", parameters, &retVal)
+	return
+}
+
+func (a *API) Ping() (string, error) {
+	return parseString(run(a, "ping", nil))
 }

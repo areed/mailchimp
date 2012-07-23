@@ -21,17 +21,6 @@ var del = make(chan string, 1)
 var orderChannel = make(chan string, 1)
 var folderUpdate = make(chan int, 1)
 var folderDel = make(chan int, 1)
-/*
-func TestPing(t *testing.T) {
-	result, err := chimp.Ping()
-	if err != nil {
-		t.Error("mailchimp.Ping", err)
-	}
-	if result != "Everything's Chimpy!" {
-		t.Error(`Expected response "Everything's Chimpy!" but received`, result)
-	}
-}
-*/
 
 /*
 func TestCampaignContent(t *testing.T) {
@@ -659,6 +648,96 @@ func TestGmonkeyMembers(t *testing.T) {
 	_, err := chimp.GmonkeyMembers(nil)
 	if err != nil {
 		t.Error("mailchimp.GmonkeyMembers", err)
+	}
+}
+*/
+
+/*
+func TestCampaignsForEmail(t *testing.T) {
+	result, err := chimp.CampaignsForEmail(map[string]interface{}{"email_address": EMAIL})
+	if err != nil {
+		t.Error("mailchimp.CampaignsForEmail", err)
+	}
+	if len(result[0]) < 5 {
+		t.Error("mailchimp.CampaignsForEmail: expected a 10-character campaign ID but got", result[0])
+	}
+}
+*/
+
+/*
+func TestChimpChatter(t *testing.T) {
+	result, err := chimp.ChimpChatter(nil)
+	if err != nil {
+		t.Error("mailchimp.ChimpChatter", err)
+	}
+	if len(result[0].Message) <= 5 {
+		t.Error("mailchimp.ChimpChatter: first message looks too short to be a real message:", result[0].Message)
+	}
+}
+*/
+
+/*
+func TestGenerateText(t *testing.T) {
+	result, err := chimp.GenerateText(map[string]interface{}{"type": "html", "content": "<div><p>Paragraph in a div</p></div>"})
+	if err != nil {
+		t.Error("mailchimp.GenerateText", err)
+	}
+	if !strings.HasPrefix(result, "Paragraph in a div") {
+		t.Error("mailchimp.GenerateText: Expected result of `Paragraph in a div` but got", result)
+	}
+}
+*/
+
+/*
+func TestGetAccountDetails(t *testing.T) {
+	result, err := chimp.GetAccountDetails(nil)
+	if err != nil {
+		t.Error("mailchimp.GetAccountDetails", err)
+	}
+	if result.Contact.Email != EMAIL {
+		t.Error("mailchimp.GetAccountDetails: was expecting a differenct contact email address")
+	}
+}
+*/
+
+/*
+func TestGetVerifiedDomains(t *testing.T) {
+	result, err := chimp.GetVerifiedDomains(nil)
+	if err != nil {
+		t.Error("mailchimp.GetVerifiedDomains")
+	}
+	if result[0].Status != "verified" && result[0].Status != "pending" {
+		t.Error("mailchimp.GetVerifiedDomains: Expected first status to be \"verified\" or \"pending\" but got", result[0].Status)
+	}
+}
+*/
+
+/*
+Not Sure what the html parameter is supposed to be, so this method is untested
+func TestInlineCss(t *testing.T) {
+}
+*/
+
+/*
+func TestListForEmail(t *testing.T) {
+	result, err := chimp.ListsForEmail(map[string]interface{}{"email_address": EMAIL})
+	if err != nil {
+		t.Error("mailchimp.ListsForEmail", err)
+	}
+	if len(result[0]) < 5 {
+		t.Error("mailchimp.ListsForEmail: Expected the first list id returned to be 10 characters but got", result[0])
+	}
+}
+*/
+
+/*
+func TestPing(t *testing.T) {
+	result, err := chimp.Ping()
+	if err != nil {
+		t.Error("mailchimp.Ping", err)
+	}
+	if result != "Everything's Chimpy!" {
+		t.Error(`Expected response "Everything's Chimpy!" but received`, result)
 	}
 }
 */
