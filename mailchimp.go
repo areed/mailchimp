@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -44,6 +45,7 @@ func run(a *API, method string, parameters map[string]interface{}) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
+os.Stdout.Write([]byte(b))
 	resp, err := http.Post(a.endpoint+method, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
@@ -53,6 +55,7 @@ func run(a *API, method string, parameters map[string]interface{}) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
+os.Stdout.Write(body)
 	if err = errorCheck(body); err != nil {
 		return nil, err
 	}
@@ -556,3 +559,108 @@ func (a *API) CampaignUnsubscribes(parameters map[string]interface{}) (retVal *C
 	err = parseStruct(a, "campaignUnsubscribes", parameters, retVal)
 	return
 }
+
+type CampaignClickDetailAIMResult struct {
+	Total int
+	Data []struct{
+		Email string
+		Clicks int
+	}
+}
+func (a *API) CampaignClickDetailAIM(parameters map[string]interface{}) (retVal *CampaignClickDetailAIMResult, err error) {
+	retVal = new(CampaignClickDetailAIMResult)
+	err = parseStruct(a, "campaignClickDetailAIM", parameters, retVal)
+	return
+}
+
+type CampaignEmailStatsAIMResult struct {
+	Success int
+	Error int
+	Data []struct{
+		Action string
+		Timestamp string
+		Url string
+	}
+}
+func (a *API) CampaignEmailStatsAIM(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMResult, err error) {
+	retVal = new(CampaignEmailStatsAIMResult)
+	err = parseStruct(a, "campaignEmailStatsAIM", parameters, retVal)
+	return
+}
+
+type CampaignEmailStatsAIMAllResult struct {
+	Total int
+	Data map[string][]struct{
+		Action string
+		Timestamp string
+		Url string
+	}
+}
+func (a *API) CampaignEmailStatsAIMAll(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMAllResult, err error) {
+	retVal = new(CampaignEmailStatsAIMAllResult)
+	err = parseStruct(a, "campaignEmailStatsAIMAll", parameters, retVal)
+	return
+}
+
+type CampaignNotOpenedAIMResult struct {
+	Total int
+	Data []string
+}
+func (a *API) CampaignNotOpenedAIM(parameters map[string]interface{}) (retVal *CampaignNotOpenedAIMResult, err error) {
+	retVal = new(CampaignNotOpenedAIMResult)
+	err = parseStruct(a, "campaignNotOpenedAIM", parameters, retVal)
+	return
+}
+
+type CampaignOpenedAIMResult struct {
+	Total int
+	Data []struct{
+		Email string
+		Open_count int
+	}
+}
+func (a *API) CampaignOpenedAIM(parameters map[string]interface{}) (retVal *CampaignOpenedAIMResult, err error) {
+	retVal = new(CampaignOpenedAIMResult)
+	err = parseStruct(a, "campaignOpenedAIM", parameters, retVal)
+	return
+}
+
+func (a *API) EcommOrderAdd(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "ecommOrderAdd", parameters))
+}
+
+func (a *API) EcommOrderDel(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "ecommOrderDelete", parameters))
+}
+
+//EcommOrdersResult tested with data; result unmarshals correctly into this struct
+type EcommOrdersResult struct {
+	Total int
+	Data []struct{
+		Store_id string
+		Store_name string
+		Order_id string
+		Email string
+		Order_total float64
+		Tax_total float64
+		Ship_total float64
+		Order_date string
+		Lines []struct{
+			Line_num int
+			Product_id int
+			Product_name string
+			Product_sku string
+			Product_category_id int
+			Product_category_name string
+			Qty int
+			Cost float64
+		}
+	}
+}
+func (a *API) EcommOrders(parameters map[string]interface{}) (retVal *EcommOrdersResult, err error) {
+	retVal = new(EcommOrdersResult)
+	err = parseStruct(a, "ecommOrders", parameters, retVal)
+	return
+}
+
+

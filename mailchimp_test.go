@@ -4,9 +4,12 @@ import "os"
 import "testing"
 //import "strings"
 //import "time"
+//import "fmt"
 
 var CID = os.Getenv("MAILCHIMPCID")
 var RSS = os.Getenv("MAILCHIMPRSS")
+var EMAIL = os.Getenv("MAILCHIMPEMAIL")
+var STORE = os.Getenv("MAILCHIMPSTORE")
 
 var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
 
@@ -14,6 +17,7 @@ var schedule = make(chan string, 1)
 var unschedule = make(chan string, 1)
 var update = make(chan string, 1)
 var del = make(chan string, 1)
+var orderChannel = make(chan string, 1)
 
 /*
 func TestPing(t *testing.T) {
@@ -431,6 +435,131 @@ func TestCampaignUnsubscribes(t *testing.T) {
 	_, err := chimp.CampaignUnsubscribes(map[string]interface{}{"cid": CID})
 	if err != nil {
 		t.Error("mailchimp.CampaignUnsubscribes", err)
+	}
+}
+*/
+
+/*
+func TestCampaignClickDetailAIM(t *testing.T) {
+	result, err := chimp.CampaignClickDetailAIM(map[string]interface{}{"cid": CID, "url": "http://example.com"})
+	if err != nil {
+		t.Error("mailchimp.CampaignClickDetailAIM", err)
+	}
+	t.Error(result)
+}
+*/
+
+/*
+func TestCampaignEmailStatsAIM(t *testing.T) {
+	result, err := chimp.CampaignEmailStatsAIM(map[string]interface{}{"cid": CID, "email_address": "areed@partitus.com"})
+	if err != nil {
+		t.Error("mailchimp.CampaignEmailStatsAIM", err)
+	}
+	if result.Success != 1 {
+		t.Error("mailchimp.CampaignEmailStatsAIM: expected to find 1 matching email but found", result.Success)
+	}
+}
+*/
+
+
+/*
+func TestCampaignEmailStatsAIMAll(t *testing.T) {
+	result, err := chimp.CampaignEmailStatsAIMAll(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignEmailStatsAIMAll", err)
+	}
+	if _, ok := result.Data["areed@partitus.com"]; !ok {
+		t.Error("mailchimp.CampaignEmailStatsAIMAll: expected to get data for areed@partitus.com but didn't")
+	}
+}
+*/
+
+/*
+func TestCampaignNotOpenedAIM(t *testing.T) {
+	result, err := chimp.CampaignNotOpenedAIM(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignNotOpenedAIM", err)
+	}
+	//this test will fail if a campaign has more unopens than the default page size of 1000
+	if len(result.Data) != result.Total {
+		t.Error("mailchimp.CampaignNotOpened: the length of the array of email addresses should equal Total count")
+	}
+}
+*/
+
+/*
+func TestCampaignOpenedAIM(t *testing.T) {
+	result, err := chimp.CampaignOpenedAIM(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignOpenedAIM", err)
+	}
+	//this test will fail if a campaign has more opens than the default page size of 1000
+	if len(result.Data) != result.Total {
+		t.Error("mailchimp.CampaignOpenedAIM: the length of the array of email addresses should equal Total count")
+	}
+}
+*/
+
+/*
+func TestEcommOrderAdd(t *testing.T) {
+	parameters := make(map[string]interface{})
+	order := make(map[string]interface{})
+	//need a unique order id each time test is run
+	order_id := fmt.Sprint(time.Now())
+	order["id"] = order_id
+	order["email"] = EMAIL
+	order["total"] = 100.10
+	order["store_id"] = STORE
+	items := make([]map[string]interface{}, 1)
+	item := make(map[string]interface{})
+	item["product_id"] = "1000"
+	item["product_name"] = "widget_1"
+	item["category_id"] = 10
+	item["category_name"] = "widgets"
+	item["qty"] = 10.0
+	item["cost"] = 10.01
+	items = append(items, item)
+	order["items"] = items
+	parameters["order"] = order
+	go func() {
+		result, err := chimp.EcommOrderAdd(parameters)
+		if err != nil {
+			t.Error("mailchimp.EcommOrderAdd",err)
+		}
+		if !result {
+			t.Error("mailchimp.EcommOrderAdd: expected return value to be true but got", result)
+		} else {
+			orderChannel <- order_id
+		}
+	}()
+}
+*/
+
+/*
+func TestEcommOrderDel(t *testing.T) {
+	go func() {
+		parameters := make(map[string]interface{})
+		parameters["store_id"] = STORE
+		parameters["order_id"] = <- orderChannel
+		result, err := chimp.EcommOrderDel(parameters)
+		if err != nil {
+			t.Error("mailchimp.EcommOrderDel",err)
+		}
+		if !result {
+			t.Error("mailchimp.EcommOrderDel: expected return value to be true but got", result)
+		}
+	}()
+}
+*/
+
+/*
+func TestEcommOrders(t *testing.T) {
+	result, err := chimp.EcommOrders(nil)
+	if err != nil {
+		t.Error("mailchimp.EcommOrders", err)
+	}
+	if result.Data[0].Lines[0].Line_num != 1 {
+		t.Error("mailchimp.EcommOrders: expected first line_num of first order returned to be 1 but got", result.Data[0].Lines[0].Line_num)
 	}
 }
 */
