@@ -1,29 +1,43 @@
 package mailchimp
 
-import (
-//	"time"
-	"os"
-	"testing"
-)
+import "os"
+import "testing"
+//import "strings"
+import "time"
 
 var CID = os.Getenv("MAILCHIMPCID")
 var RSS = os.Getenv("MAILCHIMPRSS")
 
 var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
 
-//var schedule = make(chan string, 1)
-//var unschedule = make(chan string, 1)
-//var update = make(chan string, 1)
-//var del = make(chan string, 1)
+var schedule = make(chan string, 1)
+var unschedule = make(chan string, 1)
+var update = make(chan string, 1)
+var del = make(chan string, 1)
+
+/*
+func TestPing(t *testing.T) {
+	result, err := chimp.Ping()
+	if err != nil {
+		t.Error("mailchimp.Ping", err)
+	}
+	if result != "Everything's Chimpy!" {
+		t.Error(`Expected response "Everything's Chimpy!" but received`, result)
+	}
+}
+*/
 
 /*
 func TestCampaignContent(t *testing.T) {
 	parameters := make(map[string]interface{})
 	parameters["cid"] = os.Getenv("MAILCHIMPCID")
 	parameters["for_archive"] = true
-	_, err = chimp.CampaignContent(parameters)
+	result, err := chimp.CampaignContent(parameters)
 	if err != nil {
 		t.Error("mailchimp.CampaignContent:", err)
+	}
+	if !strings.Contains(result.Html, "<head>") {
+		t.Error("mailchimp.CampaignContent: the Html field of the returned struct does not look like html")
 	}
 }
 */
@@ -280,13 +294,100 @@ func TestCampaigns(t *testing.T) {
 */
 
 /*
-func TestPing(t *testing.T) {
-	result, err := chimp.Ping()
+func TestCampaignAbuseReports(t *testing.T) {
+	_, err := chimp.CampaignAbuseReports(map[string]interface{}{"cid": CID})
 	if err != nil {
-		t.Error("mailchimp.Ping", err)
+		t.Error("mailchimp.CampaignAbuseReports:", err)
 	}
-	if result != "Everything's Chimpy!" {
-		t.Error(`Expected response "Everything's Chimpy!" but received`, result)
+}
+*/
+
+/*
+func TestCampaignAdvice(t *testing.T) {
+	_, err := chimp.CampaignAdvice(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignAdvice", err)
+	}
+}
+*/
+
+/*
+func TestCampaignAnalytics(t *testing.T) {
+	_, err := chimp.CampaignAnalytics(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignAnalytics", err)
+	}
+}
+*/
+
+/*
+func TestCampaignBounceMessage(t *testing.T) {
+	_, err := chimp.CampaignBounceMessage(map[string]interface{}{"cid": CID, "email": "w.andrew.reed@gmail.com"})
+	if err != nil {
+		t.Error("mailchimp.CampaignBounceMessage", err)
+	}
+}
+*/
+
+/*
+func TestCampaignBounceMessages(t *testing.T) {
+	_, err := chimp.CampaignBounceMessages(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignBounceMessages", err)
+	}
+}
+*/
+
+/*
+func TestCampaignClickStats(t *testing.T) {
+	_, err := chimp.CampaignClickStats(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignClickStats", err)
+	}
+}
+*/
+
+/*
+func TestCampaignEcommOrders(t *testing.T) {
+	_, err := chimp.CampaignEcommOrders(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignEcommOrders", err)
+	}
+}
+*/
+
+/*
+func TestCampaignEepUrlStats(t *testing.T) {
+	_, err := chimp.CampaignEepUrlStats(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignEepUrlStats", err)
+	}
+}
+*/
+
+/*
+func TestCampaignEmailDomainPerformance(t *testing.T) {
+	_, err := chimp.CampaignEmailDomainPerformance(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignEmailDomainPerformance", err)
+	}
+}
+*/
+
+/*
+func TestCampaignGeoOpens(t *testing.T) {
+	result, err := chimp.CampaignGeoOpens(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignEmailGeoOpens", err)
+	}
+}
+*/
+
+/*
+func TestCampaignGeoOpensForCountry(t *testing.T) {
+	result, err := chimp.CampaignGeoOpensForCountry(map[string]interface{}{"cid": CID, "code": "US"})
+	if err != nil {
+		t.Error("mailchimp.CampaignGeoOpensForCountry", err)
 	}
 }
 */

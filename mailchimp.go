@@ -3,35 +3,27 @@ package mailchimp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
-//	"log"
 	"net/http"
 	"net/url"
-//	"os"
 	"regexp"
 	"strconv"
 	"time"
 )
 
+//format string for time.Format
 const ChimpTime = "2006-01-02 15:04:05"
 
 var datacenter = regexp.MustCompile("[a-z]+[0-9]+$")
 
-type api struct {
+type API struct {
 	Key      string
 	endpoint string
 }
 
-type ChimpError struct {
-	Err string `json:"error"`
-	Code int
-}
-func (e ChimpError) Error() string {
-	return fmt.Sprintf("%v: %v", e.Code, e.Err)
-}
-
-func New(apikey string, https bool) (*api, error) {
+func New(apikey string, https bool) (*API, error) {
 	u := url.URL{}
 	if https {
 		u.Scheme = "https"
@@ -40,10 +32,10 @@ func New(apikey string, https bool) (*api, error) {
 	}
 	u.Host = fmt.Sprintf("%s.api.mailchimp.com", datacenter.FindString(apikey))
 	u.Path = "/1.3/"
-	return &api{apikey, u.String() + "?method="}, nil
+	return &API{apikey, u.String() + "?method="}, nil
 }
 
-func run(a *api, method string, parameters map[string]interface{}) ([]byte, error) {
+func run(a *API, method string, parameters map[string]interface{}) ([]byte, error) {
 	if parameters == nil {
 		parameters = make(map[string]interface{})
 	}
@@ -52,15 +44,30 @@ func run(a *api, method string, parameters map[string]interface{}) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.Post(a.endpoint + method, "application/json", bytes.NewBuffer(b))
+	resp, err := http.Post(a.endpoint+method, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err = errorCheck(body); err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
-func verify(body []byte) error {
+type ChimpError struct {
+	Err  string `json:"error"`
+	Code int
+}
+
+func (e ChimpError) Error() string {
+	return fmt.Sprintf("%v: %v", e.Code, e.Err)
+}
+func errorCheck(body []byte) error {
 	var e ChimpError
 	json.Unmarshal(body, &e)
 	if e.Err != "" || e.Code != 0 {
@@ -76,186 +83,129 @@ func chimpTime(t interface{}) interface{} {
 	case string:
 		return ti
 	}
-	return t;
+	return t
 }
 
-func parseInt(body []byte) (int, error) {
-	if err := verify(body); err != nil {
+func parseInt(body []byte, err error) (int, error) {
+	i, err := strconv.ParseInt(string(body), 10, 0)
+	if err != nil {
 		return 0, err
 	}
-	i, err := strconv.ParseInt(string(body), 10, 0)
-	return int(i), err
+	return int(i), nil
 }
 
-func parseString(body []byte) (string, error) {
-	if err := verify(body); err != nil {
+func parseString(body []byte, err error) (string, error) {
+	if err != nil {
 		return "", err
 	}
 	return strconv.Unquote(string(body))
 }
 
-func parseStruct(body []byte, ret interface{}) error {
-	if err := verify(body); err != nil {
-		return err
-	}
-	json.Unmarshal(body, ret)
-	return nil
-}
-
-func parseBoolean(body []byte) (bool, error) {
-	if err := verify(body); err != nil {
+func parseBoolean(body []byte, err error) (bool, error) {
+	if err != nil {
 		return false, err
 	}
 	return strconv.ParseBool(string(body))
+}
+
+func parseStruct(a *API, method string, parameters map[string]interface{}, retVal interface{}) error {
+	body, err := run(a, method, parameters)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(body, retVal)
+	return nil
+}
+
+func (a *API) Ping() (string, error) {
+	return parseString(run(a, "ping", nil))
 }
 
 type CampaignContentResult struct {
 	Html string
 	Text string
 }
-func (a *api) CampaignContent(parameters map[string]interface{}) (*CampaignContentResult, error) {
-	body, err := run(a, "campaignContent", parameters)
-	if err != nil {
-		return nil, err
-	}
-	var ccr CampaignContentResult
-	err = parseStruct(body, &ccr)
-	return &ccr, nil
+
+func (a *API) CampaignContent(parameters map[string]interface{}) (retVal *CampaignContentResult, err error) {
+	retVal = new(CampaignContentResult)
+	err = parseStruct(a, "campaignContent", parameters, retVal)
+	return
 }
 
-func (a *api) CampaignCreate(parameters map[string]interface{}) (string, error) {
-	body, err := run(a, "campaignCreate", parameters)
-	if err != nil {
-		return "", err
-	}
-	return parseString(body)
+func (a *API) CampaignCreate(parameters map[string]interface{}) (string, error) {
+	return parseString(run(a, "campaignCreate", parameters))
 }
 
-func (a *api) CampaignDelete(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignDelete", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignDelete(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignDelete", parameters))
 }
 
-//not tested
-func (a *api) CampaignEcommOrderAdd(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignEcommOrderAdd", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+//CampaignEcommOrderAdd method has not been tested with real return data
+func (a *API) CampaignEcommOrderAdd(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignEcommOrderAdd", parameters))
 }
 
-func (a *api) CampaignPause(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignPause", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignPause(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignPause", parameters))
 }
 
-
-func (a *api) CampaignReplicate(parameters map[string]interface{}) (string, error) {
-	resp, err := run(a, "campaignReplicate", parameters)
-	if err != nil {
-		return "", err
-	}
-	return parseString(resp)
+func (a *API) CampaignReplicate(parameters map[string]interface{}) (string, error) {
+	return parseString(run(a, "campaignReplicate", parameters))
 }
 
-func (a *api) CampaignResume(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignResume", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignResume(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignResume", parameters))
 }
 
-func (a *api) CampaignSchedule(parameters map[string]interface{}) (bool, error) {
+func (a *API) CampaignSchedule(parameters map[string]interface{}) (bool, error) {
+	//convert times to Mailchimp's format
 	if parameters == nil {
-		parameters = make(map[string]interface{})
+		return false, errors.New("missing required parameters")
 	}
 	parameters["schedule_time"] = chimpTime(parameters["schedule_time"])
-	if t, exist := parameters["schedule_time_b"]; exist {
-		parameters["schedule_time_b"] = chimpTime(t)
-	}
-	body, err := run(a, "campaignSchedule", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+	parameters["schedule_time_b"] = chimpTime(parameters["schedule_time_b"])
+	return parseBoolean(run(a, "campaignSchedule", parameters))
 }
 
-func (a *api) CampaignSegmentTest(parameters map[string]interface{}) (int, error) {
-	body, err := run(a, "campaignSegmentTest", parameters)
-	if err != nil {
-		return 0, err
-	}
-	return parseInt(body)
+func (a *API) CampaignSegmentTest(parameters map[string]interface{}) (int, error) {
+	return parseInt(run(a, "campaignSegmentTest", parameters))
 }
 
-func (a *api) CampaignSendNow(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignSendNow", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignSendNow(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignSendNow", parameters))
 }
 
-func (a *api) CampaignSendTest(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignSendTest", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignSendTest(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignSendTest", parameters))
 }
 
 type CampaignShareReportResult struct {
-	Title string
-	Url string
+	Title      string
+	Url        string
 	Secure_url string
-	Password string
-}
-func (a *api) CampaignShareReport(parameters map[string]interface{}) (*CampaignShareReportResult, error) {
-	body, err := run(a, "campaignShareReport", parameters)
-	if err != nil {
-		return nil, err
-	}
-	var csrr CampaignShareReportResult
-	if err = parseStruct(body, &csrr); err != nil {
-		return nil, err
-	}
-	return &csrr, nil
+	Password   string
 }
 
-func (a *api) CampaignTemplateContent(parameters map[string]interface{}) (map[string]interface{}, error) {
-	body, err := run(a, "campaignTemplateContent", parameters)
-	if err != nil {
-		return nil, err
-	}
-	m := make(map[string]interface{})
-	if err = json.Unmarshal(body, &m); err != nil {
-		return nil, err
-	}
-	return m, nil
+func (a *API) CampaignShareReport(parameters map[string]interface{}) (retVal *CampaignShareReportResult, err error) {
+	retVal = new(CampaignShareReportResult)
+	err = parseStruct(a, "campaignShareReport", parameters, retVal)
+	return
 }
 
-func (a *api) CampaignUnschedule(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignUnschedule", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+//CampaignTemplateContent method returns a map[string]interface{} of all content sections for the campaign
+//Section names are dependent upon the template used and thus can't be documented
+//TODO: If all values in the resulting map are string, change return type to map[string]string to obviate type assertions
+func (a *API) CampaignTemplateContent(parameters map[string]interface{}) (retVal map[string]interface{}, err error) {
+	err = parseStruct(a, "campaignTemplateContent", parameters, &retVal)
+	return
 }
 
-func (a *api) CampaignUpdate(parameters map[string]interface{}) (bool, error) {
-	body, err := run(a, "campaignUpdate", parameters)
-	if err != nil {
-		return false, err
-	}
-	return parseBoolean(body)
+func (a *API) CampaignUnschedule(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignUnschedule", parameters))
+}
+
+func (a *API) CampaignUpdate(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "campaignUpdate", parameters))
 }
 
 type CampaignsResult struct {
@@ -304,24 +254,218 @@ type CampaignsResultDataSegment_opts struct {
 	Match      string
 	Conditions []map[string]interface{}
 }
-func (a *api) Campaigns(parameters map[string]interface{}) (*CampaignsResult, error) {
-	body, err := run(a, "campaigns", parameters)
-	var cr CampaignsResult
-	if err = parseStruct(body, &cr); err != nil {
-		return nil, err
-	}
-	return &cr, nil
-/*
-	//mock response for development
-	file, err := os.Open("/home/ec2-user/go/src/github.com/areed/mailchimp/go.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	body, err := ioutil.ReadAll(file)
-*/
+
+func (a *API) Campaigns(parameters map[string]interface{}) (retVal *CampaignsResult, err error) {
+	retVal = new(CampaignsResult)
+	err = parseStruct(a, "campaigns", parameters, retVal)
+	return
 }
 
-func (a *api) Ping() (result string, err error) {
-	body, err := run(a, "ping", make(map[string]interface{}))
-	return parseString(body)
+type CampaignAbuseReportsResultDataItem struct {
+	Date  string
+	Email string
+	Type  string
+}
+type CampaignAbuseReportsResult struct {
+	Total int
+	Data  []CampaignAbuseReportsResultDataItem
+}
+
+func (a *API) CampaignAbuseReports(parameters map[string]interface{}) (retVal *CampaignAbuseReportsResult, err error) {
+	retVal = new(CampaignAbuseReportsResult)
+	err = parseStruct(a, "campaignAbuseReports", parameters, retVal)
+	return
+}
+
+type CampaignAdviceResultItem struct {
+	Msg  string
+	Type string
+}
+
+func (a *API) CampaignAdvice(parameters map[string]interface{}) (retVal []CampaignAdviceResultItem, err error) {
+	err = parseStruct(a, "campaignAdvice", parameters, &retVal)
+	return
+}
+
+type CampaignAnalyticsResultGoals struct {
+	Name        string
+	Conversions int
+}
+type CampaignAnalyticsResult struct {
+	Visits            int
+	Pages             int
+	New_visits        int
+	Bounces           int
+	Time_on_site      float64
+	Goal_conversions  int
+	Goal_value        float64
+	Revenue           float64
+	Transactions      int
+	Ecomm_conversions int
+	Goals             CampaignAnalyticsResultGoals
+}
+
+func (a *API) CampaignAnalytics(parameters map[string]interface{}) (retVal *CampaignAnalyticsResult, err error) {
+	retVal = new(CampaignAnalyticsResult)
+	err = parseStruct(a, "campaignAnalytics", parameters, retVal)
+	return
+}
+
+type CampaignBounceMessageResult struct {
+	Date    string
+	Email   string
+	Message string
+}
+
+func (a *API) CampaignBounceMessage(parameters map[string]interface{}) (retVal *CampaignBounceMessageResult, err error) {
+	retVal = new(CampaignBounceMessageResult)
+	err = parseStruct(a, "campaignBounceMessage", parameters, retVal)
+	return
+}
+
+type CampaignBounceMessagesResult struct {
+	Total int
+	Data  []CampaignBounceMessageResult
+}
+
+func (a *API) CampaignBounceMessages(parameters map[string]interface{}) (retVal *CampaignBounceMessagesResult, err error) {
+	retVal = new(CampaignBounceMessagesResult)
+	err = parseStruct(a, "campaignBounceMessages", parameters, retVal)
+	return
+}
+
+//CampaignClickStats method returns a map where the keys are urls extracted from the campaign
+type CampaignClickStatsResultItem struct {
+	Clicks int
+	Unique int
+}
+
+func (a *API) CampaignClickStats(parameters map[string]interface{}) (retVal map[string]CampaignClickStatsResultItem, err error) {
+	err = parseStruct(a, "campaignClickStats", parameters, &retVal)
+	return
+}
+
+//CampaignEcommOrders method has not been tested with real response data
+//The json returned by this routine might not unmarshal correctly into the return struct for this method
+type CampaignEcommOrdersResultDataItemLinesItem struct {
+	Line_num              int
+	Product_id            int
+	Product_name          string
+	Product_sku           string
+	Product_category_id   int
+	Product_category_name int
+	Qty                   int
+	Cost                  float64
+}
+type CampaignEcommOrdersResultDataItem struct {
+	Store_id    string
+	Store_name  string
+	Order_id    string
+	Email       string
+	Order_total float64
+	Tax_total   float64
+	Ship_total  float64
+	Order_date  string
+	Lines       []CampaignEcommOrdersResultDataItemLinesItem
+}
+type CampaignEcommOrdersResult struct {
+	Total int
+	Data  []CampaignEcommOrdersResultDataItem
+}
+
+func (a *API) CampaignEcommOrders(parameters map[string]interface{}) (retVal *CampaignEcommOrdersResult, err error) {
+	retVal = new(CampaignEcommOrdersResult)
+	err = parseStruct(a, "campaignEcommOrders", parameters, retVal)
+	return
+}
+
+//Mailchimp's documentation for CampaignEepUrlStats is incorrect and I don't have any examples of non-empty JSON
+//return values from this routine, so there is no way to design accurate types to unmarshal responses into.
+//Therefore, this method returns an interface{} and users will have to use type assertion or type
+//switching to unpack the response. The custom types for this method are not used yet.
+type CampaignEepUrlStatsResultTwitterClicksLocations struct {
+	Country string
+	Region  string
+	Total   int
+}
+type CampaignEepUrlStatsResultTwitterClicksReferrers struct {
+	Referrer    string
+	Clicks      int
+	First_click string
+	Last_click  string
+}
+type CampaignEepUrlStatsResultTwitterClicks struct {
+	Clicks      int
+	First_click string
+	Last_click  string
+	Locations   CampaignEepUrlStatsResultTwitterClicksLocations
+	Referrers   []CampaignEepUrlStatsResultTwitterClicksReferrers
+}
+type CampaignEepUrlStatsResultTwitterStatuses struct {
+	Status      string
+	Screen_name string
+	Status_id   string
+	Datetime    string
+	Is_retweet  bool
+}
+type CampaignEepUrlStatsResultTwitter struct {
+	Tweets        int
+	First_tweet   string
+	Last_tweet    string
+	Retweets      int
+	First_retweet string
+	Last_retweet  string
+	Statuses      CampaignEepUrlStatsResultTwitterStatuses
+	Clicks        CampaignEepUrlStatsResultTwitterClicks
+}
+type CampaignEepUrlStatsResult struct {
+	Twitter CampaignEepUrlStatsResultTwitter
+}
+
+func (a *API) CampaignEepUrlStats(parameters map[string]interface{}) (retVal interface{}, err error) {
+	err = parseStruct(a, "campaignEepUrlStats", parameters, &retVal)
+	return
+}
+
+type CampaignEmailDomainPerformanceResultItem struct {
+	Domain     string
+	Total_sent int
+	Email      int
+	Bounces    int
+	Opens      int
+	Clicks     int
+	Unsubs     int
+	Delivered  int
+	Emails_pct int
+	Opens_pct  int
+	Clicks_pct int
+	Unsubs_pct int
+}
+
+func (a *API) CampaignEmailDomainPerformance(parameters map[string]interface{}) (retVal []CampaignEmailDomainPerformanceResultItem, err error) {
+	err = parseStruct(a, "campaignEmailDomainPerformance", parameters, &retVal)
+	return
+}
+
+type CampaignGeoOpensResultItem struct {
+	Code          string
+	Name          string
+	Opens         int
+	Region_detail bool
+}
+
+func (a *API) CampaignGeoOpens(parameters map[string]interface{}) (retVal []CampaignGeoOpensResultItem, err error) {
+	err = parseStruct(a, "campaignGeoOpens", parameters, &retVal)
+	return
+}
+
+type CampaignGeoOpensForCountryReturnItem struct {
+	Code  string
+	Name  string
+	Opens int
+}
+
+func (a *API) CampaignGeoOpensForCountry(parameters map[string]interface{}) (retVal []CampaignGeoOpensForCountryReturnItem, err error) {
+	err = parseStruct(a, "campaignGeoOpensForCountry", parameters, &retVal)
+	return
 }
