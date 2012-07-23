@@ -18,7 +18,8 @@ var unschedule = make(chan string, 1)
 var update = make(chan string, 1)
 var del = make(chan string, 1)
 var orderChannel = make(chan string, 1)
-
+var folderUpdate = make(chan int, 1)
+var folderDel = make(chan int, 1)
 /*
 func TestPing(t *testing.T) {
 	result, err := chimp.Ping()
@@ -563,3 +564,52 @@ func TestEcommOrders(t *testing.T) {
 	}
 }
 */
+
+/*
+func TestFolderAdd(t *testing.T) {
+	result, err := chimp.FolderAdd(map[string]interface{}{"name": "TesterFolder"})
+	if err != nil {
+		t.Error("mailchimp.FolderAdd", err)
+	}
+	if result <= 0 {
+		t.Error("Expected the folder_id to be a positive integer but got", result)
+	}
+	folderUpdate <- result
+}
+
+func TestFolderUpdate(t *testing.T) {
+	fid := <- folderUpdate
+	result, err := chimp.FolderUpdate(map[string]interface{}{"fid": fid, "name": "UpdatedTesterFolder"})
+	if err != nil {
+		t.Error("mailchimp.FolderUpdate", err)
+	}
+	if !result {
+		t.Error("mailchimp.FolderUpdate: expected result to be true but got", result)
+	}
+	folderDel <- fid
+}
+
+func TestFolderDel(t *testing.T) {
+	result, err := chimp.FolderDel(map[string]interface{}{"fid": <- folderDel})
+	if err != nil {
+		t.Error("mailchimp.FolderDel", err)
+	}
+	if !result {
+		t.Error("mailchimp.FolderDel expected result to be true but got", result)
+	}
+}
+*/
+
+/*
+func TestFolders(t *testing.T) {
+	result, err := chimp.Folders(nil)
+	if err != nil {
+		t.Error("mailchimp.Folders", err)
+	}
+	if result[0].Folder_id <= 0 {
+		t.Error("mailchimp.Folders: expected first Folder_id to be a positive integer but got", result[0].Folder_id)
+	}
+}
+*/
+
+

@@ -663,4 +663,25 @@ func (a *API) EcommOrders(parameters map[string]interface{}) (retVal *EcommOrder
 	return
 }
 
+func (a *API) FolderAdd(parameters map[string]interface{}) (int, error) {
+	return parseInt(run(a, "folderAdd", parameters))
+}
 
+func (a *API) FolderDel(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "folderDel", parameters))
+}
+
+func (a *API) FolderUpdate(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "folderUpdate", parameters))
+}
+
+type FoldersResultItem struct {
+	Folder_id int
+	Name string
+	Date_created string
+	Type string
+}
+func (a *API) Folders(parameters map[string]interface{}) (retVal []FoldersResultItem, err error) {
+	err = parseStruct(a, "folders", parameters, &retVal)
+	return
+}
