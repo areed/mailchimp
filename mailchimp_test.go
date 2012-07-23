@@ -3,7 +3,7 @@ package mailchimp
 import "os"
 import "testing"
 //import "strings"
-import "time"
+//import "time"
 
 var CID = os.Getenv("MAILCHIMPCID")
 var RSS = os.Getenv("MAILCHIMPRSS")
@@ -235,6 +235,9 @@ func TestCampaignShareReport(t *testing.T) {
 	if err != nil {
 		t.Error("mailchimp.CampaignShareReport:", err)
 	}
+	if !strings.HasPrefix(result.Url, "http") {
+		t.Error("Expected result.Url to be a valid url but got", result.Url)
+	}
 }
 */
 
@@ -315,16 +318,20 @@ func TestCampaignAdvice(t *testing.T) {
 func TestCampaignAnalytics(t *testing.T) {
 	_, err := chimp.CampaignAnalytics(map[string]interface{}{"cid": CID})
 	if err != nil {
-		t.Error("mailchimp.CampaignAnalytics", err)
+		if err.(ChimpError).Err != `Google Analytics Add-on required for this function` {
+			t.Error("mailchimp.CampaignAnalytics", err)
+		}
 	}
 }
 */
 
 /*
 func TestCampaignBounceMessage(t *testing.T) {
-	_, err := chimp.CampaignBounceMessage(map[string]interface{}{"cid": CID, "email": "w.andrew.reed@gmail.com"})
+	_, err := chimp.CampaignBounceMessage(map[string]interface{}{"cid": CID, "email": "areed@partitus.com"})
 	if err != nil {
-		t.Error("mailchimp.CampaignBounceMessage", err)
+		if err.(ChimpError).Code != 319 {
+			t.Error("mailchimp.CampaignBounceMessage", err)
+		}
 	}
 }
 */
@@ -376,7 +383,7 @@ func TestCampaignEmailDomainPerformance(t *testing.T) {
 
 /*
 func TestCampaignGeoOpens(t *testing.T) {
-	result, err := chimp.CampaignGeoOpens(map[string]interface{}{"cid": CID})
+	_, err := chimp.CampaignGeoOpens(map[string]interface{}{"cid": CID})
 	if err != nil {
 		t.Error("mailchimp.CampaignEmailGeoOpens", err)
 	}
@@ -385,9 +392,45 @@ func TestCampaignGeoOpens(t *testing.T) {
 
 /*
 func TestCampaignGeoOpensForCountry(t *testing.T) {
-	result, err := chimp.CampaignGeoOpensForCountry(map[string]interface{}{"cid": CID, "code": "US"})
+	_, err := chimp.CampaignGeoOpensForCountry(map[string]interface{}{"cid": CID, "code": "US"})
 	if err != nil {
 		t.Error("mailchimp.CampaignGeoOpensForCountry", err)
+	}
+}
+*/
+
+/*
+func TestCampaignMembers(t *testing.T) {
+	result, err := chimp.CampaignMembers(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignMembers", err)
+	}
+	if result.Total <= 0 {
+		t.Error("mailchimp.CampaignMembers: Expected total to be positive but got", result.Total)
+	}
+	if len(result.Data[0].Email) < 5 {
+		t.Error("mailchimp.CampaignMembers: First returned email address appears invalid:", result.Data[0].Email)
+	}
+}
+*/
+
+/*
+func TestCampaignStats(t *testing.T) {
+	result, err := chimp.CampaignStats(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignStats", err)
+	}
+	if result.Emails_sent <= 0 {
+		t.Error("mailchimp.CampaignStats: expected emails_sent to be positive but got", result.Emails_sent)
+	}
+}
+*/
+
+/*
+func TestCampaignUnsubscribes(t *testing.T) {
+	_, err := chimp.CampaignUnsubscribes(map[string]interface{}{"cid": CID})
+	if err != nil {
+		t.Error("mailchimp.CampaignUnsubscribes", err)
 	}
 }
 */

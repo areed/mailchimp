@@ -469,3 +469,90 @@ func (a *API) CampaignGeoOpensForCountry(parameters map[string]interface{}) (ret
 	err = parseStruct(a, "campaignGeoOpensForCountry", parameters, &retVal)
 	return
 }
+
+type CampaignMembersResult struct {
+	Total int
+	Data []struct{
+		Email string
+		Status string
+		Absplit_group string
+		Tz_group string
+	}
+}
+func (a *API) CampaignMembers(parameters map[string]interface{}) (retVal *CampaignMembersResult, err error) {
+	retVal = new(CampaignMembersResult)
+	err = parseStruct(a, "campaignMembers", parameters, retVal)
+	return
+}
+
+//CampaignStatsResult method has only been tested with limited return data
+//The nested structs in the return struct in particular may be incorrect
+type CampaignStatsResult struct {
+	Syntax_errors int
+	Hard_bounces int
+	Soft_bounces int
+	Unsubscribes int
+	Abuse_reports int
+	Forwards int
+	Forwards_opens int
+	Opens int
+	Last_open string
+	Unique_opens int
+	Clicks int
+	Unique_clicks int
+	Last_click string
+	Users_who_clicked int
+	Emails_sent int
+	Unique_likes int
+	Recipient_likes int
+	Facebook_likes int
+	Absplit struct {
+		Bounces_a int
+		Bounces_b int
+		Forwards_a int
+		Forwards_b int
+		Abuse_reports_a int
+		Abuse_reports_b int
+		Unsubs_a int
+		Unsubs_b int
+		Recipients_click_a int
+		Recipients_click_b int
+		Forwards_opens_a int
+		Forwards_opens_b int
+	}
+	Timewarp map[string]struct{
+		Opens int
+		Last_open string
+		Unique_opens int
+		Clicks int
+		Last_click string
+		Bounces int
+		Total int
+		Sent int
+	}
+	Timeseries[]struct{
+		Timestamp string
+		Emails_sent int
+		Unique_opens int
+		Recipients_click int
+	}
+}
+func (a *API) CampaignStats(parameters map[string]interface{}) (retVal *CampaignStatsResult, err error) {
+	retVal = new(CampaignStatsResult)
+	err = parseStruct(a, "campaignStats", parameters, retVal)
+	return
+}
+
+type CampaignUnsubscribesResult struct {
+	Total int
+	Data []struct{
+		Email string
+		Reason string
+		Reason_text string
+	}
+}
+func (a *API) CampaignUnsubscribes(parameters map[string]interface{}) (retVal *CampaignUnsubscribesResult, err error) {
+	retVal = new(CampaignUnsubscribesResult)
+	err = parseStruct(a, "campaignUnsubscribes", parameters, retVal)
+	return
+}
