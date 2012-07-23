@@ -111,7 +111,7 @@ func parseBoolean(body []byte, err error) (bool, error) {
 	return strconv.ParseBool(string(body))
 }
 
-func parseStruct(a *API, method string, parameters map[string]interface{}, retVal interface{}) error {
+func parseJson(a *API, method string, parameters map[string]interface{}, retVal interface{}) error {
 	body, err := run(a, method, parameters)
 	if err != nil {
 		return err
@@ -131,7 +131,7 @@ type CampaignContentResult struct {
 
 func (a *API) CampaignContent(parameters map[string]interface{}) (retVal *CampaignContentResult, err error) {
 	retVal = new(CampaignContentResult)
-	err = parseStruct(a, "campaignContent", parameters, retVal)
+	err = parseJson(a, "campaignContent", parameters, retVal)
 	return
 }
 
@@ -191,7 +191,7 @@ type CampaignShareReportResult struct {
 
 func (a *API) CampaignShareReport(parameters map[string]interface{}) (retVal *CampaignShareReportResult, err error) {
 	retVal = new(CampaignShareReportResult)
-	err = parseStruct(a, "campaignShareReport", parameters, retVal)
+	err = parseJson(a, "campaignShareReport", parameters, retVal)
 	return
 }
 
@@ -199,7 +199,7 @@ func (a *API) CampaignShareReport(parameters map[string]interface{}) (retVal *Ca
 //Section names are dependent upon the template used and thus can't be documented
 //TODO: If all values in the resulting map are string, change return type to map[string]string to obviate type assertions
 func (a *API) CampaignTemplateContent(parameters map[string]interface{}) (retVal map[string]interface{}, err error) {
-	err = parseStruct(a, "campaignTemplateContent", parameters, &retVal)
+	err = parseJson(a, "campaignTemplateContent", parameters, &retVal)
 	return
 }
 
@@ -260,7 +260,7 @@ type CampaignsResultDataSegment_opts struct {
 
 func (a *API) Campaigns(parameters map[string]interface{}) (retVal *CampaignsResult, err error) {
 	retVal = new(CampaignsResult)
-	err = parseStruct(a, "campaigns", parameters, retVal)
+	err = parseJson(a, "campaigns", parameters, retVal)
 	return
 }
 
@@ -276,7 +276,7 @@ type CampaignAbuseReportsResult struct {
 
 func (a *API) CampaignAbuseReports(parameters map[string]interface{}) (retVal *CampaignAbuseReportsResult, err error) {
 	retVal = new(CampaignAbuseReportsResult)
-	err = parseStruct(a, "campaignAbuseReports", parameters, retVal)
+	err = parseJson(a, "campaignAbuseReports", parameters, retVal)
 	return
 }
 
@@ -286,7 +286,7 @@ type CampaignAdviceResultItem struct {
 }
 
 func (a *API) CampaignAdvice(parameters map[string]interface{}) (retVal []CampaignAdviceResultItem, err error) {
-	err = parseStruct(a, "campaignAdvice", parameters, &retVal)
+	err = parseJson(a, "campaignAdvice", parameters, &retVal)
 	return
 }
 
@@ -310,7 +310,7 @@ type CampaignAnalyticsResult struct {
 
 func (a *API) CampaignAnalytics(parameters map[string]interface{}) (retVal *CampaignAnalyticsResult, err error) {
 	retVal = new(CampaignAnalyticsResult)
-	err = parseStruct(a, "campaignAnalytics", parameters, retVal)
+	err = parseJson(a, "campaignAnalytics", parameters, retVal)
 	return
 }
 
@@ -322,7 +322,7 @@ type CampaignBounceMessageResult struct {
 
 func (a *API) CampaignBounceMessage(parameters map[string]interface{}) (retVal *CampaignBounceMessageResult, err error) {
 	retVal = new(CampaignBounceMessageResult)
-	err = parseStruct(a, "campaignBounceMessage", parameters, retVal)
+	err = parseJson(a, "campaignBounceMessage", parameters, retVal)
 	return
 }
 
@@ -333,7 +333,7 @@ type CampaignBounceMessagesResult struct {
 
 func (a *API) CampaignBounceMessages(parameters map[string]interface{}) (retVal *CampaignBounceMessagesResult, err error) {
 	retVal = new(CampaignBounceMessagesResult)
-	err = parseStruct(a, "campaignBounceMessages", parameters, retVal)
+	err = parseJson(a, "campaignBounceMessages", parameters, retVal)
 	return
 }
 
@@ -344,7 +344,7 @@ type CampaignClickStatsResultItem struct {
 }
 
 func (a *API) CampaignClickStats(parameters map[string]interface{}) (retVal map[string]CampaignClickStatsResultItem, err error) {
-	err = parseStruct(a, "campaignClickStats", parameters, &retVal)
+	err = parseJson(a, "campaignClickStats", parameters, &retVal)
 	return
 }
 
@@ -378,7 +378,7 @@ type CampaignEcommOrdersResult struct {
 
 func (a *API) CampaignEcommOrders(parameters map[string]interface{}) (retVal *CampaignEcommOrdersResult, err error) {
 	retVal = new(CampaignEcommOrdersResult)
-	err = parseStruct(a, "campaignEcommOrders", parameters, retVal)
+	err = parseJson(a, "campaignEcommOrders", parameters, retVal)
 	return
 }
 
@@ -426,7 +426,7 @@ type CampaignEepUrlStatsResult struct {
 }
 
 func (a *API) CampaignEepUrlStats(parameters map[string]interface{}) (retVal interface{}, err error) {
-	err = parseStruct(a, "campaignEepUrlStats", parameters, &retVal)
+	err = parseJson(a, "campaignEepUrlStats", parameters, &retVal)
 	return
 }
 
@@ -446,7 +446,7 @@ type CampaignEmailDomainPerformanceResultItem struct {
 }
 
 func (a *API) CampaignEmailDomainPerformance(parameters map[string]interface{}) (retVal []CampaignEmailDomainPerformanceResultItem, err error) {
-	err = parseStruct(a, "campaignEmailDomainPerformance", parameters, &retVal)
+	err = parseJson(a, "campaignEmailDomainPerformance", parameters, &retVal)
 	return
 }
 
@@ -458,7 +458,7 @@ type CampaignGeoOpensResultItem struct {
 }
 
 func (a *API) CampaignGeoOpens(parameters map[string]interface{}) (retVal []CampaignGeoOpensResultItem, err error) {
-	err = parseStruct(a, "campaignGeoOpens", parameters, &retVal)
+	err = parseJson(a, "campaignGeoOpens", parameters, &retVal)
 	return
 }
 
@@ -469,7 +469,7 @@ type CampaignGeoOpensForCountryReturnItem struct {
 }
 
 func (a *API) CampaignGeoOpensForCountry(parameters map[string]interface{}) (retVal []CampaignGeoOpensForCountryReturnItem, err error) {
-	err = parseStruct(a, "campaignGeoOpensForCountry", parameters, &retVal)
+	err = parseJson(a, "campaignGeoOpensForCountry", parameters, &retVal)
 	return
 }
 
@@ -484,7 +484,7 @@ type CampaignMembersResult struct {
 }
 func (a *API) CampaignMembers(parameters map[string]interface{}) (retVal *CampaignMembersResult, err error) {
 	retVal = new(CampaignMembersResult)
-	err = parseStruct(a, "campaignMembers", parameters, retVal)
+	err = parseJson(a, "campaignMembers", parameters, retVal)
 	return
 }
 
@@ -542,7 +542,7 @@ type CampaignStatsResult struct {
 }
 func (a *API) CampaignStats(parameters map[string]interface{}) (retVal *CampaignStatsResult, err error) {
 	retVal = new(CampaignStatsResult)
-	err = parseStruct(a, "campaignStats", parameters, retVal)
+	err = parseJson(a, "campaignStats", parameters, retVal)
 	return
 }
 
@@ -556,7 +556,7 @@ type CampaignUnsubscribesResult struct {
 }
 func (a *API) CampaignUnsubscribes(parameters map[string]interface{}) (retVal *CampaignUnsubscribesResult, err error) {
 	retVal = new(CampaignUnsubscribesResult)
-	err = parseStruct(a, "campaignUnsubscribes", parameters, retVal)
+	err = parseJson(a, "campaignUnsubscribes", parameters, retVal)
 	return
 }
 
@@ -569,7 +569,7 @@ type CampaignClickDetailAIMResult struct {
 }
 func (a *API) CampaignClickDetailAIM(parameters map[string]interface{}) (retVal *CampaignClickDetailAIMResult, err error) {
 	retVal = new(CampaignClickDetailAIMResult)
-	err = parseStruct(a, "campaignClickDetailAIM", parameters, retVal)
+	err = parseJson(a, "campaignClickDetailAIM", parameters, retVal)
 	return
 }
 
@@ -584,7 +584,7 @@ type CampaignEmailStatsAIMResult struct {
 }
 func (a *API) CampaignEmailStatsAIM(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMResult, err error) {
 	retVal = new(CampaignEmailStatsAIMResult)
-	err = parseStruct(a, "campaignEmailStatsAIM", parameters, retVal)
+	err = parseJson(a, "campaignEmailStatsAIM", parameters, retVal)
 	return
 }
 
@@ -598,7 +598,7 @@ type CampaignEmailStatsAIMAllResult struct {
 }
 func (a *API) CampaignEmailStatsAIMAll(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMAllResult, err error) {
 	retVal = new(CampaignEmailStatsAIMAllResult)
-	err = parseStruct(a, "campaignEmailStatsAIMAll", parameters, retVal)
+	err = parseJson(a, "campaignEmailStatsAIMAll", parameters, retVal)
 	return
 }
 
@@ -608,7 +608,7 @@ type CampaignNotOpenedAIMResult struct {
 }
 func (a *API) CampaignNotOpenedAIM(parameters map[string]interface{}) (retVal *CampaignNotOpenedAIMResult, err error) {
 	retVal = new(CampaignNotOpenedAIMResult)
-	err = parseStruct(a, "campaignNotOpenedAIM", parameters, retVal)
+	err = parseJson(a, "campaignNotOpenedAIM", parameters, retVal)
 	return
 }
 
@@ -621,7 +621,7 @@ type CampaignOpenedAIMResult struct {
 }
 func (a *API) CampaignOpenedAIM(parameters map[string]interface{}) (retVal *CampaignOpenedAIMResult, err error) {
 	retVal = new(CampaignOpenedAIMResult)
-	err = parseStruct(a, "campaignOpenedAIM", parameters, retVal)
+	err = parseJson(a, "campaignOpenedAIM", parameters, retVal)
 	return
 }
 
@@ -659,7 +659,7 @@ type EcommOrdersResult struct {
 }
 func (a *API) EcommOrders(parameters map[string]interface{}) (retVal *EcommOrdersResult, err error) {
 	retVal = new(EcommOrdersResult)
-	err = parseStruct(a, "ecommOrders", parameters, retVal)
+	err = parseJson(a, "ecommOrders", parameters, retVal)
 	return
 }
 
@@ -682,6 +682,75 @@ type FoldersResultItem struct {
 	Type string
 }
 func (a *API) Folders(parameters map[string]interface{}) (retVal []FoldersResultItem, err error) {
-	err = parseStruct(a, "folders", parameters, &retVal)
+	err = parseJson(a, "folders", parameters, &retVal)
+	return
+}
+
+type GmonkeyActivityResultItem struct {
+	Action string
+	Timestamp string
+	Url string
+	Unique_id string
+	Title string
+	List_name string
+	Email string
+	Fname string
+	Lname string
+	Member_rating int
+	Member_since string
+	Geo struct {
+		Latitude string
+		Longitude string
+		Gmtoff string
+		Dstoff string
+		Timezone string
+		Cc string
+		Region string
+	}
+}
+func (a *API) GmonkeyActivity(parameters map[string]interface{}) (retVal []GmonkeyActivityResultItem, err error) {
+	err = parseJson(a, "gmonkeyActivity", parameters, &retVal)
+	return
+}
+
+type GmonkeyAddResult struct {
+	Success int
+	Errors int
+	Data []struct {
+		Email_address string
+		Error string
+	}
+}
+func (a *API) GmonkeyAdd(parameters map[string]interface{}) (retVal *GmonkeyAddResult, err error) {
+	retVal = new(GmonkeyAddResult)
+	err = parseJson(a, "gmonkeyAdd", parameters, retVal)
+	return
+}
+
+type GmonkeyDelResult struct {
+	Success int
+	Errors int
+	Data []struct {
+		Email_address string
+		Error string
+	}
+}
+func (a *API) GmonkeyDel(parameters map[string]interface{}) (retVal *GmonkeyDelResult, err error) {
+	retVal = new(GmonkeyDelResult)
+	err = parseJson(a, "gmonkeyDel", parameters, retVal)
+	return
+}
+
+type GmonkeyMembersItem struct {
+	List_id string
+	List_name string
+	Email string
+	Fname string
+	Lname string
+	Member_rating int
+	Member_since int
+}
+func (a *API) GmonkeyMembers(parameters map[string]interface{}) (retVal []GmonkeyMembersItem, err error) {
+	err = parseJson(a, "gmonkeyMembers", parameters, &retVal)
 	return
 }

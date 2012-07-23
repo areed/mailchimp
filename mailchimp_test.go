@@ -10,6 +10,7 @@ var CID = os.Getenv("MAILCHIMPCID")
 var RSS = os.Getenv("MAILCHIMPRSS")
 var EMAIL = os.Getenv("MAILCHIMPEMAIL")
 var STORE = os.Getenv("MAILCHIMPSTORE")
+var LIST = os.Getenv("MAILCHIMPLIST")
 
 var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
 
@@ -612,4 +613,52 @@ func TestFolders(t *testing.T) {
 }
 */
 
+/*
+func TestGmonkeyActivity(t *testing.T) {
+	_, err := chimp.GmonkeyActivity(nil)
+	if err != nil {
+		t.Error("mailchimp.GmonkeyActivity", err)
+	}
+}
+*/
 
+/*
+func TestGmonkeyAdd(t *testing.T) {
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["email_address"] = []string{EMAIL}
+	result, err := chimp.GmonkeyAdd(parameters)
+	if err != nil {
+		t.Error("mailchimp.GmonkeyAdd", err)
+	}
+	if result.Success + result.Errors != 1 {
+		t.Errorf("mailchimp.GmonkeyAdd: expected either 1 success or 1 error but got %d successes and %d errors", result.Success, result.Errors)
+	}
+	if result.Errors != len(result.Data) {
+		t.Error("mailchimp:GmonkeyAdd: There should be one item in the data array for each error")
+	}
+}
+
+func TestGmonkeyDel(t *testing.T) {
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["email_address"] = []string{EMAIL}
+	result, err := chimp.GmonkeyDel(parameters)
+	if err != nil {
+		t.Error("mailchimp.GmonkeyDel", err)
+	}
+	if result.Success + result.Errors != 1 {
+		t.Errorf("mailchimp.GmonkeyDel: expected either 1 success or 1 error but got %d successes and %d errors", result.Success, result.Errors)
+	}
+	if result.Errors != len(result.Data) {
+		t.Error("mailchimp:GmonkeyDel: There should be one item in the data array for each error")
+	}
+}
+
+func TestGmonkeyMembers(t *testing.T) {
+	_, err := chimp.GmonkeyMembers(nil)
+	if err != nil {
+		t.Error("mailchimp.GmonkeyMembers", err)
+	}
+}
+*/
