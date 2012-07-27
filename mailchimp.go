@@ -1,3 +1,17 @@
+/*
+	Package mailchimp implements version 1.3 of Mailchimp's API
+
+	Routines are implemented as methods on type API, which should
+	be created with the New function
+
+	chimp := mailchimp.New("apikey123apikey123-us1")
+
+	The comment for each method contains a link to the corresonding
+	Mailchimp routine documentation in lieu of a description of parameters
+	used with each method
+
+	TODO: implement timeouts and corresponding error
+*/
 package mailchimp
 
 import (
@@ -14,19 +28,16 @@ import (
 	"time"
 )
 
-//format string for time.Format
-const ChimpTime = "2006-01-02 15:04:05"
-
-var datacenter = regexp.MustCompile("[a-z]+[0-9]+$")
-
 type API struct {
 	Key      string
 	endpoint string
 }
 
-func New(apikey string, https bool) (*API, error) {
+var datacenter = regexp.MustCompile("[a-z]+[0-9]+$")
+
+func New(apikey string, https ...bool) (*API, error) {
 	u := url.URL{}
-	if https {
+	if https[0] {
 		u.Scheme = "https"
 	} else {
 		u.Scheme = "http"
@@ -45,7 +56,7 @@ func run(a *API, method string, parameters map[string]interface{}) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-os.Stdout.Write([]byte(b))
+	//os.Stdout.Write([]byte(b))
 	resp, err := http.Post(a.endpoint+method, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
@@ -55,7 +66,7 @@ os.Stdout.Write([]byte(b))
 	if err != nil {
 		return nil, err
 	}
-os.Stdout.Write(body)
+	os.Stdout.Write(body)
 	if err = errorCheck(body); err != nil {
 		return nil, err
 	}
@@ -79,10 +90,33 @@ func errorCheck(body []byte) error {
 	return nil
 }
 
+//ChimpTime is a named struct with a single anonymous field of type time.Time
+//and inherits all its methods except UnmarshalJSON, which is overridden since
+//Mailchimp does not adhere to the RFC3339 format
+type ChimpTime struct {
+	time.Time
+}
+func (t *ChimpTime) UnmarshalJSON(data []byte) (err error) {
+	s := string(data)
+	l := len(s)
+	switch {
+	case l == 12:
+		t.Time, err = time.Parse(`"2006-01-02"`, s)
+	case l == 21:
+		t.Time, err = time.Parse(`"2006-01-02 15:04:05"`, s)
+	case l == 9:
+		t.Time, err = time.Parse(`"2006-01"`, s)
+	}
+	return
+}
+
+//format string for time.Format
+const ChimpTimeFormat = "2006-01-02 15:04:05"
+
 func chimpTime(t interface{}) interface{} {
 	switch ti := t.(type) {
 	case time.Time:
-		return ti.Format(ChimpTime)
+		return ti.Format(ChimpTimeFormat)
 	case string:
 		return ti
 	}
@@ -111,12 +145,22 @@ func parseBoolean(body []byte, err error) (bool, error) {
 	return strconv.ParseBool(string(body))
 }
 
+type alterJsoner interface {
+	alterJson(b []byte) []byte
+}
 func parseJson(a *API, method string, parameters map[string]interface{}, retVal interface{}) error {
 	body, err := run(a, method, parameters)
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(body, retVal)
+	switch r := retVal.(type) {
+	case alterJsoner:
+		blob := r.alterJson(body)
+		os.Stdout.Write(blob)
+		json.Unmarshal(r.alterJson(body), retVal)
+	default:
+		json.Unmarshal(body, retVal)
+	}
 	return nil
 }
 
@@ -471,13 +515,14 @@ func (a *API) CampaignGeoOpensForCountry(parameters map[string]interface{}) (ret
 
 type CampaignMembersResult struct {
 	Total int
-	Data []struct{
-		Email string
-		Status string
+	Data  []struct {
+		Email         string
+		Status        string
 		Absplit_group string
-		Tz_group string
+		Tz_group      string
 	}
 }
+
 func (a *API) CampaignMembers(parameters map[string]interface{}) (retVal *CampaignMembersResult, err error) {
 	retVal = new(CampaignMembersResult)
 	err = parseJson(a, "campaignMembers", parameters, retVal)
@@ -487,55 +532,56 @@ func (a *API) CampaignMembers(parameters map[string]interface{}) (retVal *Campai
 //CampaignStatsResult method has only been tested with limited return data
 //The nested structs in the return struct in particular may be incorrect
 type CampaignStatsResult struct {
-	Syntax_errors int
-	Hard_bounces int
-	Soft_bounces int
-	Unsubscribes int
-	Abuse_reports int
-	Forwards int
-	Forwards_opens int
-	Opens int
-	Last_open string
-	Unique_opens int
-	Clicks int
-	Unique_clicks int
-	Last_click string
+	Syntax_errors     int
+	Hard_bounces      int
+	Soft_bounces      int
+	Unsubscribes      int
+	Abuse_reports     int
+	Forwards          int
+	Forwards_opens    int
+	Opens             int
+	Last_open         string
+	Unique_opens      int
+	Clicks            int
+	Unique_clicks     int
+	Last_click        string
 	Users_who_clicked int
-	Emails_sent int
-	Unique_likes int
-	Recipient_likes int
-	Facebook_likes int
-	Absplit struct {
-		Bounces_a int
-		Bounces_b int
-		Forwards_a int
-		Forwards_b int
-		Abuse_reports_a int
-		Abuse_reports_b int
-		Unsubs_a int
-		Unsubs_b int
+	Emails_sent       int
+	Unique_likes      int
+	Recipient_likes   int
+	Facebook_likes    int
+	Absplit           struct {
+		Bounces_a          int
+		Bounces_b          int
+		Forwards_a         int
+		Forwards_b         int
+		Abuse_reports_a    int
+		Abuse_reports_b    int
+		Unsubs_a           int
+		Unsubs_b           int
 		Recipients_click_a int
 		Recipients_click_b int
-		Forwards_opens_a int
-		Forwards_opens_b int
+		Forwards_opens_a   int
+		Forwards_opens_b   int
 	}
-	Timewarp map[string]struct{
-		Opens int
-		Last_open string
+	Timewarp map[string]struct {
+		Opens        int
+		Last_open    string
 		Unique_opens int
-		Clicks int
-		Last_click string
-		Bounces int
-		Total int
-		Sent int
+		Clicks       int
+		Last_click   string
+		Bounces      int
+		Total        int
+		Sent         int
 	}
-	Timeseries[]struct{
-		Timestamp string
-		Emails_sent int
-		Unique_opens int
+	Timeseries []struct {
+		Timestamp        string
+		Emails_sent      int
+		Unique_opens     int
 		Recipients_click int
 	}
 }
+
 func (a *API) CampaignStats(parameters map[string]interface{}) (retVal *CampaignStatsResult, err error) {
 	retVal = new(CampaignStatsResult)
 	err = parseJson(a, "campaignStats", parameters, retVal)
@@ -544,12 +590,13 @@ func (a *API) CampaignStats(parameters map[string]interface{}) (retVal *Campaign
 
 type CampaignUnsubscribesResult struct {
 	Total int
-	Data []struct{
-		Email string
-		Reason string
+	Data  []struct {
+		Email       string
+		Reason      string
 		Reason_text string
 	}
 }
+
 func (a *API) CampaignUnsubscribes(parameters map[string]interface{}) (retVal *CampaignUnsubscribesResult, err error) {
 	retVal = new(CampaignUnsubscribesResult)
 	err = parseJson(a, "campaignUnsubscribes", parameters, retVal)
@@ -558,11 +605,12 @@ func (a *API) CampaignUnsubscribes(parameters map[string]interface{}) (retVal *C
 
 type CampaignClickDetailAIMResult struct {
 	Total int
-	Data []struct{
-		Email string
+	Data  []struct {
+		Email  string
 		Clicks int
 	}
 }
+
 func (a *API) CampaignClickDetailAIM(parameters map[string]interface{}) (retVal *CampaignClickDetailAIMResult, err error) {
 	retVal = new(CampaignClickDetailAIMResult)
 	err = parseJson(a, "campaignClickDetailAIM", parameters, retVal)
@@ -571,13 +619,14 @@ func (a *API) CampaignClickDetailAIM(parameters map[string]interface{}) (retVal 
 
 type CampaignEmailStatsAIMResult struct {
 	Success int
-	Error int
-	Data []struct{
-		Action string
+	Error   int
+	Data    []struct {
+		Action    string
 		Timestamp string
-		Url string
+		Url       string
 	}
 }
+
 func (a *API) CampaignEmailStatsAIM(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMResult, err error) {
 	retVal = new(CampaignEmailStatsAIMResult)
 	err = parseJson(a, "campaignEmailStatsAIM", parameters, retVal)
@@ -586,12 +635,13 @@ func (a *API) CampaignEmailStatsAIM(parameters map[string]interface{}) (retVal *
 
 type CampaignEmailStatsAIMAllResult struct {
 	Total int
-	Data map[string][]struct{
-		Action string
+	Data  map[string][]struct {
+		Action    string
 		Timestamp string
-		Url string
+		Url       string
 	}
 }
+
 func (a *API) CampaignEmailStatsAIMAll(parameters map[string]interface{}) (retVal *CampaignEmailStatsAIMAllResult, err error) {
 	retVal = new(CampaignEmailStatsAIMAllResult)
 	err = parseJson(a, "campaignEmailStatsAIMAll", parameters, retVal)
@@ -600,8 +650,9 @@ func (a *API) CampaignEmailStatsAIMAll(parameters map[string]interface{}) (retVa
 
 type CampaignNotOpenedAIMResult struct {
 	Total int
-	Data []string
+	Data  []string
 }
+
 func (a *API) CampaignNotOpenedAIM(parameters map[string]interface{}) (retVal *CampaignNotOpenedAIMResult, err error) {
 	retVal = new(CampaignNotOpenedAIMResult)
 	err = parseJson(a, "campaignNotOpenedAIM", parameters, retVal)
@@ -610,11 +661,12 @@ func (a *API) CampaignNotOpenedAIM(parameters map[string]interface{}) (retVal *C
 
 type CampaignOpenedAIMResult struct {
 	Total int
-	Data []struct{
-		Email string
+	Data  []struct {
+		Email      string
 		Open_count int
 	}
 }
+
 func (a *API) CampaignOpenedAIM(parameters map[string]interface{}) (retVal *CampaignOpenedAIMResult, err error) {
 	retVal = new(CampaignOpenedAIMResult)
 	err = parseJson(a, "campaignOpenedAIM", parameters, retVal)
@@ -632,27 +684,28 @@ func (a *API) EcommOrderDel(parameters map[string]interface{}) (bool, error) {
 //EcommOrdersResult tested with data; result unmarshals correctly into this struct
 type EcommOrdersResult struct {
 	Total int
-	Data []struct{
-		Store_id string
-		Store_name string
-		Order_id string
-		Email string
+	Data  []struct {
+		Store_id    string
+		Store_name  string
+		Order_id    string
+		Email       string
 		Order_total float64
-		Tax_total float64
-		Ship_total float64
-		Order_date string
-		Lines []struct{
-			Line_num int
-			Product_id int
-			Product_name string
-			Product_sku string
-			Product_category_id int
+		Tax_total   float64
+		Ship_total  float64
+		Order_date  string
+		Lines       []struct {
+			Line_num              int
+			Product_id            int
+			Product_name          string
+			Product_sku           string
+			Product_category_id   int
 			Product_category_name string
-			Qty int
-			Cost float64
+			Qty                   int
+			Cost                  float64
 		}
 	}
 }
+
 func (a *API) EcommOrders(parameters map[string]interface{}) (retVal *EcommOrdersResult, err error) {
 	retVal = new(EcommOrdersResult)
 	err = parseJson(a, "ecommOrders", parameters, retVal)
@@ -672,38 +725,40 @@ func (a *API) FolderUpdate(parameters map[string]interface{}) (bool, error) {
 }
 
 type FoldersResultItem struct {
-	Folder_id int
-	Name string
+	Folder_id    int
+	Name         string
 	Date_created string
-	Type string
+	Type         string
 }
+
 func (a *API) Folders(parameters map[string]interface{}) (retVal []FoldersResultItem, err error) {
 	err = parseJson(a, "folders", parameters, &retVal)
 	return
 }
 
 type GmonkeyActivityResultItem struct {
-	Action string
-	Timestamp string
-	Url string
-	Unique_id string
-	Title string
-	List_name string
-	Email string
-	Fname string
-	Lname string
+	Action        string
+	Timestamp     string
+	Url           string
+	Unique_id     string
+	Title         string
+	List_name     string
+	Email         string
+	Fname         string
+	Lname         string
 	Member_rating int
-	Member_since string
-	Geo struct {
-		Latitude string
+	Member_since  string
+	Geo           struct {
+		Latitude  string
 		Longitude string
-		Gmtoff string
-		Dstoff string
-		Timezone string
-		Cc string
-		Region string
+		Gmtoff    string
+		Dstoff    string
+		Timezone  string
+		Cc        string
+		Region    string
 	}
 }
+
 func (a *API) GmonkeyActivity(parameters map[string]interface{}) (retVal []GmonkeyActivityResultItem, err error) {
 	err = parseJson(a, "gmonkeyActivity", parameters, &retVal)
 	return
@@ -711,12 +766,13 @@ func (a *API) GmonkeyActivity(parameters map[string]interface{}) (retVal []Gmonk
 
 type GmonkeyAddResult struct {
 	Success int
-	Errors int
-	Data []struct {
+	Errors  int
+	Data    []struct {
 		Email_address string
-		Error string
+		Error         string
 	}
 }
+
 func (a *API) GmonkeyAdd(parameters map[string]interface{}) (retVal *GmonkeyAddResult, err error) {
 	retVal = new(GmonkeyAddResult)
 	err = parseJson(a, "gmonkeyAdd", parameters, retVal)
@@ -725,12 +781,13 @@ func (a *API) GmonkeyAdd(parameters map[string]interface{}) (retVal *GmonkeyAddR
 
 type GmonkeyDelResult struct {
 	Success int
-	Errors int
-	Data []struct {
+	Errors  int
+	Data    []struct {
 		Email_address string
-		Error string
+		Error         string
 	}
 }
+
 func (a *API) GmonkeyDel(parameters map[string]interface{}) (retVal *GmonkeyDelResult, err error) {
 	retVal = new(GmonkeyDelResult)
 	err = parseJson(a, "gmonkeyDel", parameters, retVal)
@@ -738,14 +795,15 @@ func (a *API) GmonkeyDel(parameters map[string]interface{}) (retVal *GmonkeyDelR
 }
 
 type GmonkeyMembersItem struct {
-	List_id string
-	List_name string
-	Email string
-	Fname string
-	Lname string
+	List_id       string
+	List_name     string
+	Email         string
+	Fname         string
+	Lname         string
 	Member_rating int
-	Member_since int
+	Member_since  int
 }
+
 func (a *API) GmonkeyMembers(parameters map[string]interface{}) (retVal []GmonkeyMembersItem, err error) {
 	err = parseJson(a, "gmonkeyMembers", parameters, &retVal)
 	return
@@ -757,13 +815,14 @@ func (a *API) CampaignsForEmail(parameters map[string]interface{}) (retVal []str
 }
 
 type ChimpChatterResultItem struct {
-	Message string
-	Type string
-	Url string
-	List_id string
+	Message     string
+	Type        string
+	Url         string
+	List_id     string
 	Campaign_id string
 	Update_time string
 }
+
 func (a *API) ChimpChatter(parameters map[string]interface{}) (retVal []ChimpChatterResultItem, err error) {
 	err = parseJson(a, "chimpChatter", parameters, &retVal)
 	return
@@ -774,77 +833,78 @@ func (a *API) GenerateText(parameters map[string]interface{}) (string, error) {
 }
 
 type GetAccountDetailsResult struct {
-	Username string
-	User_id string
-	Is_trial bool
-	Is_approved bool
-	Has_activated bool
-	Timezone string
-	Plan_type string
-	Plan_low int
-	Plan_high int
+	Username        string
+	User_id         string
+	Is_trial        bool
+	Is_approved     bool
+	Has_activated   bool
+	Timezone        string
+	Plan_type       string
+	Plan_low        int
+	Plan_high       int
 	Plan_start_date string
-	Emails_left int
+	Emails_left     int
 	Pending_monthly bool
-	First_payment string
-	Last_payment string
+	First_payment   string
+	Last_payment    string
 	Times_logged_in int
-	Last_login string
-	Affiliate_link string
-	Contact struct {
-		Fname string
-		Lname string
-		Email string
-		Company string
+	Last_login      string
+	Affiliate_link  string
+	Contact         struct {
+		Fname    string
+		Lname    string
+		Email    string
+		Company  string
 		Address1 string
 		Address2 string
-		City string
-		State string
-		Zip string
-		Country string
-		Url string
-		Phone string
-		Fax string
+		City     string
+		State    string
+		Zip      string
+		Country  string
+		Url      string
+		Phone    string
+		Fax      string
 	}
 	Modules []struct {
-		Name string
+		Name  string
 		Added string
 	}
 	Orders []struct {
-		Order_id int
-		Type string
-		Amount float64
-		Date string
+		Order_id     int
+		Type         string
+		Amount       float64
+		Date         string
 		Credits_used float64
 	}
 	Rewards struct {
 		Referrals_this_month int
-		Notify_on string
-		Notify_email string
-		Credits struct {
-			This_month int
+		Notify_on            string
+		Notify_email         string
+		Credits              struct {
+			This_month   int
 			Total_earned int
-			Remaining int
+			Remaining    int
 		}
 		Inspections struct {
-			This_month int
+			This_month   int
 			Total_earned int
-			Remaining int
+			Remaining    int
 		}
 		Referrals []struct {
-			Name string
-			Email string
+			Name        string
+			Email       string
 			Signup_date string
-			Type string
+			Type        string
 		}
 		Applied []struct {
-			Value int
-			Date string
-			Order_id int
+			Value      int
+			Date       string
+			Order_id   int
 			Order_desc string
 		}
 	}
 }
+
 func (a *API) GetAccountDetails(parameters map[string]interface{}) (retVal *GetAccountDetailsResult, err error) {
 	retVal = new(GetAccountDetailsResult)
 	err = parseJson(a, "getAccountDetails", parameters, retVal)
@@ -856,6 +916,7 @@ type GetVerifiedDomainsResultItem struct {
 	Status string
 	Emails string
 }
+
 func (a *API) GetVerifiedDomains(parameters map[string]interface{}) (retVal []GetVerifiedDomainsResultItem, err error) {
 	err = parseJson(a, "getVerifiedDomains", parameters, &retVal)
 	return
@@ -872,4 +933,166 @@ func (a *API) ListsForEmail(parameters map[string]interface{}) (retVal []string,
 
 func (a *API) Ping() (string, error) {
 	return parseString(run(a, "ping", nil))
+}
+
+//ListAbuseReportsResponse is the type for values returned from the ListAbuseReports method
+type ListAbuseReportsResponse struct {
+	Total int
+	Data  []struct {
+		Date        ChimpTime
+		Email       string
+		Campaign_id string
+		Type        string
+	}
+}
+
+//ListAbuseReports gets all email addresses that complained about a given campaign
+func (a *API) ListAbuseReports(parameters map[string]interface{}) (retVal *ListAbuseReportsResponse, err error) {
+	retVal = new(ListAbuseReportsResponse)
+	err = parseJson(a, "listAbuseReports", parameters, retVal)
+	return
+}
+
+//ListActivityElement is the type of elements in the slice returned from the ListActivity method
+type ListActivityElement struct {
+	User_id          int //not documented in the api docs; not sure what it means
+	Day              ChimpTime
+	Emails_sent      int
+	Unique_opens     int
+	Recipient_clicks int
+	Hard_bounce      int
+	Soft_bounce      int
+	Abuse_reports    int
+	Subs             int
+	Unsubs           int
+	Other_adds       int
+	Other_removes    int
+}
+
+//ListActivity accesses up to the previous 180 days of daily detailed aggregated
+//activity stats for a given list
+func (a *API) ListActivity(parameters map[string]interface{}) (retVal []ListActivityElement, err error) {
+	err = parseJson(a, "listActivity", parameters, &retVal)
+	return
+}
+
+//ListBatchSubscribeResponse is the type for values returned from the ListBatchSubscribe method
+type ListBatchSubscribeResponse struct {
+	Add_count    int
+	Update_count int
+	Error_count  int
+	Errors       []struct {
+		Email   string
+		Code    int
+		Message string
+	}
+}
+
+//ListBatchSubscribe subscribes a batch of email address to a list at once.
+//You should limit batches to 5k - 10k records.
+//http://apidocs.mailchimp.com/api/1.3/listbatchsubscribe.func.php
+func (a *API) ListBatchSubscribe(parameters map[string]interface{}) (retVal *ListBatchSubscribeResponse, err error) {
+	retVal = new(ListBatchSubscribeResponse)
+	err = parseJson(a, "listBatchSubscribe", parameters, retVal)
+	return
+}
+
+//ListBatchUnsubscribeResponse is the type for values returned from the ListBatchUnsubscribe method
+type ListBatchUnsubsribeResponse struct {
+	Success_count int
+	Error_count   int
+	Errors        []struct {
+		Email   string
+		Code    int
+		Message string
+	}
+}
+
+//ListBatchUnsubscribe unsubscribes a batch of email addresses from a list
+//http://apidocs.mailchimp.com/api/1.3/listbatchunsubscribe.func.php
+func (a *API) ListBatchUnsubscribe(parameters map[string]interface{}) (retVal *ListBatchUnsubsribeResponse, err error) {
+	retVal = new(ListBatchUnsubsribeResponse)
+	err = parseJson(a, "listBatchUnsubscribe", parameters, retVal)
+	return
+}
+
+//ListClientsResponse is the type for values returned from method ListClients
+//It implements the alterJsoner interface, changing the members property
+//from string to int before unmarshaling
+type ListClientsResponse struct {
+	Desktop struct {
+		Penetration float64
+		Clients     []struct {
+			Client  string
+			Icon    string
+			Percent float64
+			Members int
+		}
+	}
+	Mobile struct {
+		Penetration float64
+		Clients     []struct {
+			Client  string
+			Icon    string
+			Percent float64
+			Members int
+		}
+	}
+}
+
+var listClientsRX = regexp.MustCompile(`"members":"([0-9]*)"`)
+
+func (r *ListClientsResponse) alterJson(b []byte) []byte {
+	return listClientsRX.ReplaceAll(b, []byte(`"members":$1`))
+}
+
+//ListClients retrieves the clients that the list's subscribers have been
+//tagged as being used based on user agents seen e.g. hotmail or iPhone.
+func (a *API) ListClients(parameters map[string]interface{}) (retVal *ListClientsResponse, err error) {
+	retVal = new(ListClientsResponse)
+	err = parseJson(a, "listClients", parameters, retVal)
+	return
+}
+
+//ListGrowthHistoryResponse is the type for values returned by
+//the ListGrowthHistory method. It implements the alterJsoner interface,
+//changing the existing, imports, and optins properties from strings to ints
+//before unmarshaling, which is why the method has to return a named type
+//instaed of a slice of named types as other slice-returning methods do
+type ListGrowthHistoryResponse []ListGrowthHistoryElement
+type ListGrowthHistoryElement struct {
+	Month    ChimpTime
+	Existing int
+	Imports  int
+	Optins   int
+}
+var listGrowthHistoryRX = regexp.MustCompile(`"(existing|imports|optins)":"([0-9]*)"`)
+func (r *ListGrowthHistoryResponse) alterJson(b []byte) []byte {
+	return listGrowthHistoryRX.ReplaceAll(b, []byte(`"$1":$2`))
+}
+//ListGrowthHistory accesses the growth history by month for a given list
+//http://apidocs.mailchimp.com/api/1.3/listgrowthhistory.func.php
+func (a *API) ListGrowthHistory(parameters map[string]interface{}) (retVal *ListGrowthHistoryResponse, err error) {
+	retVal = new(ListGrowthHistoryResponse)
+	err = parseJson(a, "listGrowthHistory", parameters, retVal)
+	return
+}
+
+//ListInterestGroupAdd adds a single interest group, enabling interest groups
+//for the list if necessary. http://apidocs.mailchimp.com/api/1.3/listinterestgroupadd.func.php
+func (a *API) ListInterestGroupAdd(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "listInterestGroupAdd", parameters))
+}
+
+//ListInterestGroupDel deletes a single interest group and turns off groups
+//for the list if it was the last group.  
+//http://apidocs.mailchimp.com/api/1.3/listinterestgroupdel.func.php
+func (a *API) ListInterestGroupDel(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "listInterestGroupDel", parameters))
+}
+
+//ListInterestGroupUpdate changes the name of an interest group
+//http://apidocs.mailchimp.com/api/1.3/listinterestgroupupdate.func.php
+func (a *API) ListInterestGroupUpdate(parameters map[string]interface{}) (bool, error) {
+	return parseBoolean(run(a, "listInterestGroupUpdate", parameters))
 }

@@ -1,0 +1,19 @@
+{"total":2,"data":[{"date":"2010-06-04 03:01:19","campaign_id":"12345abcde","email":"example1@aol.com","type":"AOL"},{"date":"2010-08-03 23:41:18","campaign_id":"67890fghij","email":"example2@verizon.net","type":"YAHOO"}]}
+
+{
+	"total":2,
+	"data":[
+		{
+			"date":"2010-06-04 03:01:19",
+			"campaign_id":"12345abcde",
+			"email":"example1@aol.com",
+			"type":"AOL"
+		},
+		{
+			"date":"2010-08-03 23:41:18",
+			"campaign_id":"67890fghij",
+			"email":"example2@verizon.net",
+			"type":"YAHOO"
+		}
+	]
+}

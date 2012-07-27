@@ -1,0 +1,80 @@
+{"desktop":{"penetration":0.83050847457627,"clients":[{"members":"14","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/hotmail.png","percent":0.23728813559322,"client":"Hotmail"},{"members":"11","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/gmail.png","percent":0.1864406779661,"client":"Gmail"},{"members":"6","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/yahoo-classic.png","percent":0.10169491525424,"client":"Yahoo Classic"},{"members":"6","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/outlook-2010.png","percent":0.10169491525424,"client":"Outlook 2010"},{"members":"5","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/outlook-2007.png","percent":0.084745762711864,"client":"Outlook 2007"},{"members":"2","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/aol.png","percent":0.033898305084746,"client":"AOL"},{"members":"2","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/thunderbird.png","percent":0.033898305084746,"client":"Thunderbird"},{"members":"2","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/windows-live-mail.png","percent":0.033898305084746,"client":"Windows Live Mail"},{"members":"1","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/yahoo.png","percent":0.016949152542373,"client":"Yahoo"}]},"mobile":{"penetration":0.16949152542373,"clients":[{"members":"9","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/iphone.png","percent":0.15254237288136,"client":"iPhone"},{"members":"1","icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/android.png","percent":0.016949152542373,"client":"Android"}]}}
+
+{
+	"desktop": {
+		"penetration":0.83050847457627,
+		"clients":[
+			{	
+				"members":"14",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/hotmail.png",
+				"percent":0.23728813559322,
+				"client":"Hotmail"
+			},
+			{
+				"members":"11",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/gmail.png",
+				"percent":0.1864406779661,
+				"client":"Gmail"
+			},
+			{
+				"members":"6",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/yahoo-classic.png",
+				"percent":0.10169491525424,
+				"client":"Yahoo Classic"
+			},
+			{
+				"members":"6",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/outlook-2010.png",
+				"percent":0.10169491525424,
+				"client":"Outlook 2010"
+			},
+			{
+				"members":"5",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/outlook-2007.png",
+				"percent":0.084745762711864,
+				"client":"Outlook 2007"
+			},
+			{
+				"members":"2",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/aol.png",
+				"percent":0.033898305084746,
+				"client":"AOL"
+			},
+			{
+				"members":"2",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/thunderbird.png",
+				"percent":0.033898305084746,
+				"client":"Thunderbird"
+			},
+			{
+				"members":"2",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/windows-live-mail.png",
+				"percent":0.033898305084746,
+				"client":"Windows Live Mail"
+			},
+			{
+				"members":"1",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/yahoo.png",
+				"percent":0.016949152542373,
+				"client":"Yahoo"
+			}
+		]
+	},
+	"mobile":{
+		"penetration":0.16949152542373,
+		"clients":[
+			{
+				"members":"9",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/iphone.png",
+				"percent":0.15254237288136,
+				"client":"iPhone"
+			},
+			{
+				"members":"1",
+				"icon":"http:\/\/us1.admin.mailchimp.com\/images\/email-client-icons\/android.png",
+				"percent":0.016949152542373,
+				"client":"Android"
+			}
+		]
+	}
+}

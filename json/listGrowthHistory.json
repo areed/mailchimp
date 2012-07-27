@@ -1,0 +1,28 @@
+[{"month":"2010-05","existing":"0","imports":"1","optins":"2"},{"month":"2010-06","existing":"2","imports":"105","optins":"0"},{"month":"2010-07","existing":"135","imports":"1","optins":"0"},{"month":"2010-08","existing":"129","imports":"3","optins":"1"}]
+
+[
+	{
+		"month":"2010-05",
+		"existing":"0",
+		"imports":"1",
+		"optins":"2"
+	},
+	{
+		"month":"2010-06",
+		"existing":"2",
+		"imports":"105",
+		"optins":"0"
+	},
+	{
+		"month":"2010-07",
+		"existing":"135",
+		"imports":"1",
+		"optins":"0"
+	},
+	{
+		"month":"2010-08",
+		"existing":"129",
+		"imports":"3",
+		"optins":"1"
+	}
+]

@@ -1,0 +1,16 @@
+[{"user_id":1234567,"day":"2012-01-06","emails_sent":100,"unique_opens":50,"recipient_clicks":40,"hard_bounce":10,"soft_bounce":10,"abuse_reports":10,"subs":5,"unsubs":1,"other_adds":2,"other_removes":3},{"user_id":1234567,"day":"2012-01-07","emails_sent":0,"unique_opens":0,"recipient_clicks":0,"hard_bounce":0,"soft_bounce":0,"abuse_reports":0,"subs":0,"unsubs":0,"other_adds":0,"other_removes":0}]
+
+Actual response is an array of 180 items like this one
+{
+	"user_id":1234567,
+	"day":"2012-01-07",
+	"emails_sent":0,"unique_opens":0,
+	"recipient_clicks":0,
+	"hard_bounce":0,
+	"soft_bounce":0,
+	"abuse_reports":0,
+	"subs":0,
+	"unsubs":0,
+	"other_adds":0,
+	"other_removes":0
+}

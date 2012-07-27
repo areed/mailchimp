@@ -1,7 +1,12 @@
 package mailchimp
 
+import "bufio"
+import "path/filepath"
 import "os"
 import "testing"
+import "encoding/json"
+
+//import "bytes"
 //import "strings"
 //import "time"
 //import "fmt"
@@ -12,8 +17,6 @@ var EMAIL = os.Getenv("MAILCHIMPEMAIL")
 var STORE = os.Getenv("MAILCHIMPSTORE")
 var LIST = os.Getenv("MAILCHIMPLIST")
 
-var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
-
 var schedule = make(chan string, 1)
 var unschedule = make(chan string, 1)
 var update = make(chan string, 1)
@@ -21,6 +24,43 @@ var del = make(chan string, 1)
 var orderChannel = make(chan string, 1)
 var folderUpdate = make(chan int, 1)
 var folderDel = make(chan int, 1)
+var interestGroup = make(chan bool, 1)
+
+var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
+
+func populate(filename string, response interface{}) error {
+	filename = filepath.Join("json", filename+".json")
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	b := make([]byte, 0)
+	for {
+		line, isPrefix, _ := reader.ReadLine()
+		b = append(b, line...)
+		if !isPrefix {
+			break
+		}
+	}
+	//some response types have an alterJson method that needs
+	//to be called before unmarshalling
+	switch r := response.(type) {
+	case alterJsoner:
+		json.Unmarshal(r.alterJson(b), response)
+	default:
+		json.Unmarshal(b, response)
+	}
+	return nil
+}
+
+func verify(t *testing.T, name string, expected interface{}, actual interface{}) {
+	if actual != expected {
+		t.Errorf("%s: expected %v but actual value was %d", name, expected, actual)
+	}
+	return
+}
 
 /*
 func TestCampaignContent(t *testing.T) {
@@ -76,9 +116,11 @@ func TestCampaignDelete(t *testing.T) {
 }
 */
 
+/*
 func TestCampaignEcommOrderAdd(t *testing.T) {
-//untested
+	//untested
 }
+*/
 
 /*
 func TestCampaignPause(t *testing.T) {
@@ -452,7 +494,6 @@ func TestCampaignEmailStatsAIM(t *testing.T) {
 }
 */
 
-
 /*
 func TestCampaignEmailStatsAIMAll(t *testing.T) {
 	result, err := chimp.CampaignEmailStatsAIMAll(map[string]interface{}{"cid": CID})
@@ -738,6 +779,210 @@ func TestPing(t *testing.T) {
 	}
 	if result != "Everything's Chimpy!" {
 		t.Error(`Expected response "Everything's Chimpy!" but received`, result)
+	}
+}
+*/
+
+/*
+func TestListAbuseReportsResponse(t *testing.T) {
+	response := new(ListAbuseReportsResponse)
+	populate("listAbuseReports", response)
+
+	a := response.Total
+	if a != 2 {
+		t.Error("ListAbuseReportsResponse a: expected 2 but got", a)
+	}
+	b := response.Data[0].Type
+	if b != "AOL" {
+		t.Error("ListAbuseReportsResponse b: expected \"AOL\" but got", b)
+	}
+	c := response.Data[1].Date
+	if c.Day() != 3 {
+		t.Error("ListAbuseReportsResponse c: expected 3 got", c)
+	}
+}
+func TestListAbuseReports(t *testing.T) {
+	result, err := chimp.ListAbuseReports(map[string]interface{}{"id": LIST})
+	if err != nil {
+		t.Error("mailchimp.ListAbuseReport", err)
+	}
+	if result.Total != len(result.Data) {
+		t.Error("mailchimp.ListAbuseReport: Expected total to equal the number of abuse reports in Data")
+	}
+}
+*/
+
+/*
+func TestListActivityElement(t *testing.T) {
+	response := make([]ListActivityElement, 0)
+	populate("listActivity", &response)
+
+	a := response[0].User_id
+	if a != 1234567 {
+		t.Error("ListActivity: expected 1234567 but got", a)
+	}
+	b := response[0].Recipient_clicks
+	if b != 40 {
+		t.Error("ListActivity: expected 40 but got", b)
+	}
+	c := response[1].Other_adds
+	if c != 0 {
+		t.Error("ListActivity: expected 0 but got", c)
+	}
+}
+func TestListActivity(t *testing.T) {
+	response, err := chimp.ListActivity(map[string]interface{}{"id": LIST})
+	if err != nil {
+		t.Error("mailchimp.ListActivity", err)
+	}
+	if response[0].Day.Year() < 2000 {
+		t.Error("mailchimp.ListActivity: the year of the first day's values returned appears incorrect:", response[0].Day.Year())
+	}
+}
+*/
+
+/*
+func TestListBatchSubscribeResponse(t *testing.T) {
+	_ := new(ListBatchSubscribeResponse)
+	//need real json response for mocking
+}
+func TestListBatchSubscribe(t *testing.T) {
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	type Email struct {
+		EMAIL string
+		EMAIL_TYPE string
+	}
+	parameters["batch"] = []Email{{EMAIL, "html"}}
+	parameters["double_optin"] = false
+	parameters["update_existing"] = true
+	result, err := chimp.ListBatchSubscribe(parameters)
+	if err != nil {
+		t.Error("mailchimp.ListBatchSubscribe", err)
+	}
+	if result.Add_count + result.Update_count != 1 {
+		t.Error("mailchimp.ListBatchSubscribe: Expected email to be subscribed or updated but it was not")
+	}
+	if len(result.Errors) != result.Error_count {
+		t.Error("mailchimp.ListBatchSubscribe: The error_count should equal the length of errors array")
+	}
+}
+*/
+
+/* NO!
+func TestListBatchUnsubscribeResponse(t *testing.T) {
+	_ := new(ListBatchUnsubscribeResponse)
+	//need real json response for mocking
+}
+//Don't run this test - can't be resubscribed via API
+func TestListBatchUnsubscribe(t *testing.T) {
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["emails"] = []string{EMAIL}
+	parameters["send_goodbye"] = false
+	result, err := chimp.ListBatchUnsubscribe(parameters)
+	if err != nil {
+		t.Error("mailchimp.ListBatchUnsubscribe", err)
+	}
+	if result.Success_count + result.Error_count != 1 {
+		t.Error("mailchimp.ListBatchUnsubscribe: Expected Success_count or Error_count to be 1")
+	}
+	if len(result.Errors) != result.Error_count {
+		t.Error("mailchimp.ListBatchUnsubscribe: Number of items in array doesn't equal Error_count")
+	}
+}
+*/
+
+/*
+func TestListClientsResponse(t *testing.T) {
+	response := new(ListClientsResponse)
+	populate("listClients", response)
+
+	a := response.Mobile.Clients[0].Members
+	if a != 9 {
+		t.Error("ListClientsResponse a: expected 9 but got", a)
+	}
+	b := response.Desktop.Penetration
+	if b != 0.83050847457627 {
+		t.Error("ListClientsResponse b: expected 0.83050847457627 but got", b)
+	}
+	c := response.Desktop.Clients[8].Percent
+	if c != 0.016949152542373 {
+		t.Error("ListClientsResponse c: expected 0.016949152542373 but got", c)
+	}
+	d := response.Mobile.Clients[1].Client
+	if d != "Android" {
+		t.Error("ListClientsResponse d: expected \"Android\" but got", d)
+	}
+}
+func TestListClients(t *testing.T) {
+	_, err := chimp.ListClients(map[string]interface{}{"id": LIST})
+	if err != nil {
+		t.Error("ListClients", err)
+	}
+}
+*/
+
+/*
+func TestListGrowthHistoryElement(t *testing.T) {
+	response := make(ListGrowthHistoryResponse, 0)
+	populate("listGrowthHistory", &response)
+
+	verify(t, "ListGrowthHistory", 5, int(response[0].Month.Month()))
+	verify(t, "ListGrowthHistory", 2, response[1].Existing)
+	verify(t, "ListGrowthHistory", 1, response[2].Imports)
+	verify(t, "ListGrowthHistory", 1, response[3].Optins)
+}
+func TestListGrowthHistory(t *testing.T) {
+	_, err := chimp.ListGrowthHistory(map[string]interface{}{"id": LIST})
+	if err != nil {
+		t.Error("ListGrowthHistory", err)
+	}
+}
+*/
+
+/*
+func TestListInterestGroupAdd(t *testing.T) {
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["group_name"] = "Test Interest Group"
+	result, err := chimp.ListInterestGroupAdd(parameters)
+	if err != nil {
+		t.Error("ListInterestGroupAdd", err)
+	}
+	if !result {
+		t.Error("ListInterestGroupAdd: expected true but actual value was false")
+	}
+	interestGroup <- result
+}
+
+func TestListInterestGroupUpdate(t *testing.T) {
+	<- interestGroup
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["old_name"] = "Test Interest Group"
+	parameters["new_name"] =  "Updated Interest Group"
+	result, err := chimp.ListInterestGroupUpdate(parameters)
+	if err != nil {
+		t.Error("ListInterestGroupUpdate", err)
+	}
+	if !result {
+		t.Error("ListInterestGroupUpdate: expected true but actual value was false")
+	}
+	interestGroup <- result
+}
+
+func TestListInterestGroupDel(t *testing.T) {
+	<- interestGroup
+	parameters := make(map[string]interface{})
+	parameters["id"] = LIST
+	parameters["group_name"] = "Updated Interest Group"
+	result, err := chimp.ListInterestGroupDel(parameters)
+	if err != nil {
+		t.Error("ListInterstGroupDel", err)
+	}
+	if !result {
+		t.Error("ListInterestGroupDel: expected true but actual value was false")
 	}
 }
 */
