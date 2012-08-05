@@ -25,6 +25,7 @@ var orderChannel = make(chan string, 1)
 var folderUpdate = make(chan int, 1)
 var folderDel = make(chan int, 1)
 var interestGroup = make(chan bool, 1)
+var interestGrouping = make(chan int, 1)
 
 var chimp, err = New(os.Getenv("MAILCHIMPKEY"), true)
 
@@ -984,5 +985,67 @@ func TestListInterestGroupDel(t *testing.T) {
 	if !result {
 		t.Error("ListInterestGroupDel: expected true but actual value was false")
 	}
+}
+*/
+
+/*
+func TestListInterestGrouingAdd (t *testing.T) {
+  parameters := make(map[string]interface{})
+  parameters["id"] = LIST
+  parameters["name"] = "Diet"
+  parameters["type"] = "radio"
+  parameters["groups"] = []string{"vegetarian", "carnivore"}
+  result, err := chimp.ListInterestGroupingAdd(parameters)
+  if err != nil {
+    t.Error("ListInterestGroupDel", err)
+  }
+	if result <= 0 {
+		t.Error("Expected the folder_id to be a positive integer but got", result)
+	}
+  interestGrouping <- result
+}
+
+func TestListInterestGroupingUpdate (t *testing.T) {
+  id := <- interestGrouping
+  parameters := make(map[string]interface{})
+  parameters["grouping_id"] = id
+  parameters["name"] = "name"
+  parameters["value"] = "Dietary Preferences"
+  result, err := chimp.ListInterestGroupingUpdate(parameters);
+  if err != nil {
+    t.Error("ListInterestGroupingUpdate", err)
+  }
+  if !result {
+    t.Error("ListInterestGroupingUpdate: expected true but got", result)
+  }
+  interestGrouping <- id
+}
+
+func TestListInterestGroupings (t *testing.T) {
+  id := <- interestGrouping
+  result, err := chimp.ListInterestGroupings(map[string]interface{}{"id": LIST})
+  if err != nil {
+    t.Error("ListInterestGroupings", err)
+  }
+  if result[0].Id != id {
+    t.Error("ListInterestGroupings: Expected", id, "but got", result[0].Id)
+  }
+  if result[0].Groups[0].Name != "vegetarian" {
+    t.Error("ListInterestGroupings: Expected vegetarian but got", result[0].Groups[0].Name)
+  }
+  if result[0].Groups[1].Subscribers != 0 {
+    t.Error("ListInterestGroupings: Expected 0 but got", result[0].Groups[1].Subscribers)
+  }
+  interestGrouping <- id
+}
+
+func TestListInterestGroupingDel (t *testing.T) {
+  result, err := chimp.ListInterestGroupingDel(map[string]interface{}{"grouping_id": <- interestGrouping})
+  if err != nil {
+    t.Error("ListInterestGroupingDel", err)
+  }
+  if !result {
+    t.Error("ListInterestGroupingDel", err)
+  }
 }
 */

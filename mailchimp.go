@@ -96,6 +96,7 @@ func errorCheck(body []byte) error {
 type ChimpTime struct {
 	time.Time
 }
+
 func (t *ChimpTime) UnmarshalJSON(data []byte) (err error) {
 	s := string(data)
 	l := len(s)
@@ -148,6 +149,7 @@ func parseBoolean(body []byte, err error) (bool, error) {
 type alterJsoner interface {
 	alterJson(b []byte) []byte
 }
+
 func parseJson(a *API, method string, parameters map[string]interface{}, retVal interface{}) error {
 	body, err := run(a, method, parameters)
 	if err != nil {
@@ -1007,7 +1009,6 @@ type ListBatchUnsubsribeResponse struct {
 		Message string
 	}
 }
-
 //ListBatchUnsubscribe unsubscribes a batch of email addresses from a list
 //http://apidocs.mailchimp.com/api/1.3/listbatchunsubscribe.func.php
 func (a *API) ListBatchUnsubscribe(parameters map[string]interface{}) (retVal *ListBatchUnsubsribeResponse, err error) {
@@ -1070,6 +1071,7 @@ var listGrowthHistoryRX = regexp.MustCompile(`"(existing|imports|optins)":"([0-9
 func (r *ListGrowthHistoryResponse) alterJson(b []byte) []byte {
 	return listGrowthHistoryRX.ReplaceAll(b, []byte(`"$1":$2`))
 }
+
 //ListGrowthHistory accesses the growth history by month for a given list
 //http://apidocs.mailchimp.com/api/1.3/listgrowthhistory.func.php
 func (a *API) ListGrowthHistory(parameters map[string]interface{}) (retVal *ListGrowthHistoryResponse, err error) {
@@ -1095,4 +1097,40 @@ func (a *API) ListInterestGroupDel(parameters map[string]interface{}) (bool, err
 //http://apidocs.mailchimp.com/api/1.3/listinterestgroupupdate.func.php
 func (a *API) ListInterestGroupUpdate(parameters map[string]interface{}) (bool, error) {
 	return parseBoolean(run(a, "listInterestGroupUpdate", parameters))
+}
+
+//ListInterestGroupingAdd adds a new interest grouping, automatically enabling
+//interest groups for the list if necessary
+func (a *API) ListInterestGroupingAdd(parameters map[string]interface{}) (int, error) {
+	return parseInt(run(a, "listInterestGroupingAdd", parameters))
+}
+
+//ListInterestGroupingUpdate updates an existing interest grouping
+func (a *API) ListInterestGroupingUpdate(parameters map[string]interface{}) (bool, error) {
+  return parseBoolean(run(a, "listInterestGroupingUpdate", parameters))
+}
+
+//ListInterestGroupingDel deletes an existing interest grouping, including all
+//contained interest groups
+func (a *API) ListInterestGroupingDel(parameters map[string]interface{}) (bool, error) {
+  return parseBoolean(run(a, "listInterestGroupingDel", parameters))
+}
+
+//ListInterestGroupingsElement is the type of elements in the slice returned from the ListActivity method
+type ListInterestGroupingsElement struct {
+  Id int
+  Name string
+  Form_fields string
+  Groups []struct {
+    Bit string
+    Name string
+    Display_order string
+    Subscribers int
+  }
+}
+//ListInterestGroupings gets the list of interest groupings for a given list,
+//including the lable, form information, and included groups for each
+func (a *API) ListInterestGroupings(parameters map[string]interface{}) (retVal []ListInterestGroupingsElement, err error) {
+  err = parseJson(a, "listInterestGroupings", parameters, &retVal)
+  return
 }
